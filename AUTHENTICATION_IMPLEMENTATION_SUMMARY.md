@@ -51,7 +51,7 @@ Successfully implemented a complete authentication system for the MoodFood Andro
 
 ### **Complete User Journey:**
 ```
-App Launch → Auth Check → [Not Authenticated] → Login/Signup → [Authenticated] → Onboarding → Main App
+App Launch → Auth Check → [Not Authenticated] → Login/Signup → [Authenticated] → Main App
                                     ↓
                               [Profile Screen] → Logout → Back to Login
 ```
@@ -62,15 +62,14 @@ App Launch → Auth Check → [Not Authenticated] → Login/Signup → [Authenti
 ```
 MainActivity → Check isAuthenticated() → Determine startDestination
 ├── Not Authenticated → Login Screen
-├── Authenticated + No Onboarding → Onboarding Screen  
-└── Authenticated + Onboarding Done → Home Screen
+└── Authenticated → Home Screen
 ```
 
 #### **2. Sign Up Flow**
 ```
 SignupScreen → Enter Details → AuthViewModel.signUp() → AuthRepository.signUp()
 ├── Validate Input → Check Existing User → Hash Password
-├── Insert User → Save Session → Navigate to Onboarding
+├── Insert User → Save Session → Navigate to Home
 └── Show Error → User Retry
 ```
 
@@ -78,7 +77,7 @@ SignupScreen → Enter Details → AuthViewModel.signUp() → AuthRepository.sig
 ```
 LoginScreen → Enter Credentials → AuthViewModel.signIn() → AuthRepository.signIn()
 ├── Validate Input → Find User → Verify Password
-├── Update Login Time → Save Session → Navigate to Onboarding
+├── Update Login Time → Save Session → Navigate to Home
 └── Show Error → User Retry
 ```
 
@@ -178,36 +177,6 @@ private fun hashPassword(password: String): String {
 }
 ```
 
----
-
-## ✅ **Verification Checklist**
-
-### **Sign Up Process**
-- ✅ Email validation works
-- ✅ Password validation works
-- ✅ Password confirmation works
-- ✅ User creation in database
-- ✅ Session storage
-- ✅ Navigation to onboarding
-
-### **Sign In Process**
-- ✅ Email/password validation
-- ✅ User lookup in database
-- ✅ Password verification
-- ✅ Session restoration
-- ✅ Navigation to main app
-
-### **Logout Process**
-- ✅ Session clearing
-- ✅ Return to login screen
-- ✅ Confirmation dialog
-
-### **State Management**
-- ✅ Authentication state persistence
-- ✅ App restart behavior
-- ✅ Navigation state handling
-
----
 
 ## 🚀 **Future Enhancements**
 

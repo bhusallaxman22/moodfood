@@ -14,15 +14,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.moodfood.ui.components.BottomBar
 import com.example.moodfood.ui.auth.LoginScreen
 import com.example.moodfood.ui.auth.SignupScreen
-import com.example.moodfood.ui.onboarding.OnboardingScreen
-import com.example.moodfood.ui.onboarding.TutorialScreen
 import com.example.moodfood.ui.screens.*
 
 @Composable
 fun AppNavHost(
     startDestination: String,
     onAuthSuccess: () -> Unit,
-    onOnboardingComplete: () -> Unit,
     onSignOut: () -> Unit = {},
 ) {
     val navController = rememberNavController()
@@ -50,7 +47,7 @@ fun AppNavHost(
                 LoginScreen(
                     onSignInSuccess = {
                         onAuthSuccess()
-                        navController.navigate(NavRoute.Onboarding.route) {
+                        navController.navigate(NavRoute.Home.route) {
                             popUpTo(0)
                             launchSingleTop = true
                         }
@@ -62,28 +59,12 @@ fun AppNavHost(
                 SignupScreen(
                     onSignUpSuccess = {
                         onAuthSuccess()
-                        navController.navigate(NavRoute.Onboarding.route) {
+                        navController.navigate(NavRoute.Home.route) {
                             popUpTo(0)
                             launchSingleTop = true
                         }
                     },
                     onNavigateToLogin = { navController.navigate(NavRoute.Login.route) }
-                )
-            }
-            composable(NavRoute.Onboarding.route) {
-                OnboardingScreen(
-                    onContinue = { navController.navigate(NavRoute.Tutorial.route) }
-                )
-            }
-            composable(NavRoute.Tutorial.route) {
-                TutorialScreen(
-                    onFinish = {
-                        onOnboardingComplete()
-                        navController.navigate(NavRoute.Home.route) {
-                            popUpTo(0)
-                            launchSingleTop = true
-                        }
-                    }
                 )
             }
             composable(NavRoute.Home.route) { HomeScreen(navController) }

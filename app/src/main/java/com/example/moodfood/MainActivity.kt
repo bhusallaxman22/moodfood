@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.lifecycleScope
-import com.example.moodfood.data.SettingsRepository
 import com.example.moodfood.data.auth.AuthRepository
 import com.example.moodfood.navigation.AppNavHost
 import com.example.moodfood.navigation.NavRoute
@@ -25,16 +24,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             MoodFoodTheme {
                 val authRepo = AuthRepository(this) //The security manager
-                val settingsRepo = SettingsRepository(this) //The setting manager
                 
                 val isAuthenticated by authRepo.isAuthenticated().collectAsState(initial = false)
-                val onboardingDone by settingsRepo.onboardingDone.collectAsState(initial = false)
                 
-                // Determine start destination based on authentication and onboarding state
+                // Determine start destination based on authentication state only
                 val startDestination = when {
                     !isAuthenticated -> NavRoute.Login.route //Not logged in? -> go to login
-                    !onboardingDone -> NavRoute.Onboarding.route //logged in but no tour? -> show onboarding
-                    else -> NavRoute.Home.route // done? -> go to main app
+                    else -> NavRoute.Home.route //Authenticated? -> go directly to main app
                 }
                 
                 AppNavHost(
@@ -42,11 +38,6 @@ class MainActivity : ComponentActivity() {
                     onAuthSuccess = {
                         // when user logs in, this triggers
                         // the app automatically updates because of the Flow
-                    },
-                    onOnboardingComplete = {
-                        lifecycleScope.launch { 
-                            settingsRepo.setOnboardingDone(true) 
-                        }
                     },
                     onSignOut = {
                         lifecycleScope.launch {
