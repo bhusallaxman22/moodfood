@@ -4,12 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.lifecycleScope
-import com.example.moodfood.data.auth.AuthRepository
+import com.example.moodfood.data.SettingsRepository
 import com.example.moodfood.navigation.AppNavHost
 import com.example.moodfood.navigation.NavRoute
 import kotlinx.coroutines.launch
@@ -23,26 +26,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MoodFoodTheme {
-                val authRepo = AuthRepository(this) //The security manager
-                
-                val isAuthenticated by authRepo.isAuthenticated().collectAsState(initial = false)
-                
-                // Determine start destination based on authentication state only
-                val startDestination = when {
-                    !isAuthenticated -> NavRoute.Login.route //Not logged in? -> go to login
-                    else -> NavRoute.Home.route //Authenticated? -> go directly to main app
-                }
-                
+                val repo = SettingsRepository(this)
+                val done by repo.onboardingDone.collectAsState(initial = false)
+                val start = if (done) NavRoute.Home.route else NavRoute.Onboarding.route
                 AppNavHost(
-                    startDestination = startDestination, // where to start
-                    onAuthSuccess = {
-                        // when user logs in, this triggers
-                        // the app automatically updates because of the Flow
-                    },
-                    onSignOut = {
-                        lifecycleScope.launch {
-                            authRepo.signOut()
-                        }
+                    startDestination = start,
+                    onOnboardingComplete = {
+                        lifecycleScope.launch { repo.setOnboardingDone(true) }
                     }
                 )
             }

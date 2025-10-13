@@ -12,15 +12,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.moodfood.ui.components.BottomBar
+import com.example.moodfood.ui.auth.OnboardingScreen
 import com.example.moodfood.ui.auth.LoginScreen
 import com.example.moodfood.ui.auth.SignupScreen
+import com.example.moodfood.ui.onboarding.TutorialScreen
 import com.example.moodfood.ui.screens.*
+import com.example.moodfood.ui.suggestion.SuggestionDetailScreen
 
 @Composable
 fun AppNavHost(
     startDestination: String,
-    onAuthSuccess: () -> Unit,
-    onSignOut: () -> Unit = {},
+    onOnboardingComplete: () -> Unit,
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -43,36 +45,64 @@ fun AppNavHost(
             startDestination = startDestination,
             modifier = Modifier.padding(inner)
         ) {
+            composable(NavRoute.Onboarding.route) {
+                OnboardingScreen(navController = navController)
+            }
             composable(NavRoute.Login.route) {
                 LoginScreen(
                     onSignInSuccess = {
-                        onAuthSuccess()
+                        onOnboardingComplete()
                         navController.navigate(NavRoute.Home.route) {
                             popUpTo(0)
                             launchSingleTop = true
                         }
                     },
-                    onNavigateToSignup = { navController.navigate(NavRoute.Signup.route) }
+                    onNavigateToSignup = {
+                        navController.navigate(NavRoute.Signup.route)
+                    }
                 )
             }
             composable(NavRoute.Signup.route) {
                 SignupScreen(
                     onSignUpSuccess = {
-                        onAuthSuccess()
+                        onOnboardingComplete()
                         navController.navigate(NavRoute.Home.route) {
                             popUpTo(0)
                             launchSingleTop = true
                         }
                     },
-                    onNavigateToLogin = { navController.navigate(NavRoute.Login.route) }
+                    onNavigateToLogin = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+            composable(NavRoute.Tutorial.route) {
+                TutorialScreen(
+                    onFinish = {
+                        onOnboardingComplete()
+                        navController.navigate(NavRoute.Home.route) {
+                            popUpTo(0)
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
             composable(NavRoute.Home.route) { HomeScreen(navController) }
+            composable(NavRoute.SuggestionDetail.route) { SuggestionDetailScreen(navController) }
             composable(NavRoute.Progress.route) { ProgressScreen() }
             composable(NavRoute.Trends.route) { TrendsScreen() }
             composable(NavRoute.Mindfulness.route) { MindfulnessScreen() }
-            composable(NavRoute.Profile.route) { 
-                ProfileScreen(onSignOut = onSignOut) 
+            composable(NavRoute.Profile.route) {
+                ProfileScreen(
+                    navController = navController,
+                    onSignOut = {
+                        // Clear user session and navigate to login
+                        navController.navigate(NavRoute.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                )
             }
         }
     }

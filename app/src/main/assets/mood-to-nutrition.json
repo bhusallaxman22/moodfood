@@ -1,0 +1,110 @@
+{
+    "Happy": {
+        "foods": [
+            "Berries",
+            "Avocado", 
+            "Dark Chocolate"
+        ],
+        "nutrients": [
+            "Antioxidants",
+            "Healthy Fats",
+            "Flavonoids"
+        ]
+    },
+    "Sad": {
+        "foods": [
+            "Fatty Fish (Salmon, Mackerel)",
+            "Bananas",
+            "Oats"
+        ],
+        "nutrients": [
+            "Omega-3 Fatty Acids",
+            "Vitamin B6",
+            "Complex Carbohydrates"
+        ]
+    },
+    "Low": {
+        "foods": [
+            "Fatty Fish (Salmon, Mackerel)",
+            "Bananas",
+            "Oats"
+        ],
+        "nutrients": [
+            "Omega-3 Fatty Acids",
+            "Vitamin B6",
+            "Complex Carbohydrates"
+        ]
+    },
+    "Anxious": {
+        "foods": [
+            "Chamomile Tea",
+            "Turmeric",
+            "Yogurt"
+        ],
+        "nutrients": [
+            "Apigenin",
+            "Curcumin",
+            "Probiotics"
+        ]
+    },
+    "Calm": {
+        "foods": [
+            "Green Tea",
+            "Almonds",
+            "Spinach"
+        ],
+        "nutrients": [
+            "L-Theanine",
+            "Magnesium",
+            "Folate"
+        ]
+    },
+    "Energized": {
+        "foods": [
+            "Quinoa",
+            "Eggs",
+            "Oranges"
+        ],
+        "nutrients": [
+            "Protein",
+            "Choline",
+            "Vitamin C"
+        ]
+    },
+    "Stressed": {
+        "foods": [
+            "Greek Yogurt",
+            "Blueberries",
+            "Green Tea"
+        ],
+        "nutrients": [
+            "Probiotics",
+            "Anthocyanins",
+            "L-theanine"
+        ]
+    },
+    "Fatigued": {
+        "foods": [
+            "Spinach",
+            "Dark Chocolate",
+            "Banana"
+        ],
+        "nutrients": [
+            "Folate",
+            "Magnesium",
+            "B6"
+        ]
+    },
+    "Irritable": {
+        "foods": [
+            "Greek Yogurt",
+            "Whole Grains",
+            "Herbal Tea"
+        ],
+        "nutrients": [
+            "Probiotics",
+            "Complex Carbohydrates",
+            "Magnesium"
+        ]
+    }
+}

@@ -25,11 +25,7 @@ fun LoginScreen(
     onSignInSuccess: () -> Unit,
     onNavigateToSignup: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(
-            AuthRepository(LocalContext.current)
-        )
-    )
+    viewModel: AuthViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
