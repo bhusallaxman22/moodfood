@@ -380,8 +380,113 @@ fun MindfulnessScreen() {
 }
 
 @Composable
-fun ProfileScreen() {
-    CenterText("Profile")
+fun ProfileScreen(
+    navController: NavController? = null,
+    onSignOut: () -> Unit = {}
+) {
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text("Profile", style = MaterialTheme.typography.headlineMedium)
+        
+        // User info section
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("Account Settings", style = MaterialTheme.typography.titleMedium)
+                Text("Manage your account preferences", style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+        
+        // Settings options
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text("Settings", style = MaterialTheme.typography.titleMedium)
+                
+                OutlinedButton(
+                    onClick = { /* TODO: Edit profile */ },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Edit Profile")
+                }
+                
+                OutlinedButton(
+                    onClick = { /* TODO: Change password */ },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Change Password")
+                }
+                
+                OutlinedButton(
+                    onClick = { /* TODO: Privacy settings */ },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Privacy Settings")
+                }
+            }
+        }
+        
+        // Logout button
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer
+            )
+        ) {
+            Button(
+                onClick = { showLogoutDialog = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("Sign Out", color = MaterialTheme.colorScheme.onError)
+            }
+        }
+    }
+    
+    // Logout confirmation dialog
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Sign Out") },
+            text = { Text("Are you sure you want to sign out?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        onSignOut()
+                    }
+                ) {
+                    Text("Sign Out")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }
 
 @Composable

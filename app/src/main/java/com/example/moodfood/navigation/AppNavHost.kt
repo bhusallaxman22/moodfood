@@ -92,7 +92,18 @@ fun AppNavHost(
             composable(NavRoute.Progress.route) { ProgressScreen() }
             composable(NavRoute.Trends.route) { TrendsScreen() }
             composable(NavRoute.Mindfulness.route) { MindfulnessScreen() }
-            composable(NavRoute.Profile.route) { ProfileScreen() }
+            composable(NavRoute.Profile.route) {
+                ProfileScreen(
+                    navController = navController,
+                    onSignOut = {
+                        // Clear user session and navigate to login
+                        navController.navigate(NavRoute.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
         }
     }
 }
