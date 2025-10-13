@@ -1,25 +1,41 @@
 package com.example.moodfood.prompt
 
 object Prompts {
-    const val SYSTEM_PROMPT = "You are MoodFood AI. Given user's current mood, symptoms, and goal mood, suggest 3 foods from the provided food list. Return concise bullet points with reason. Avoid medical claims."
+    const val SYSTEM_PROMPT = """You are MoodFood AI. Analyze the user's mood, symptoms, and goal, then suggest exactly 3 foods from the provided list.
+
+CRITICAL: Respond with ONLY a JSON object in this exact format:
+{
+  "items": [
+    {
+      "name": "Food Name",
+      "ingredients": ["ingredient1", "ingredient2"],
+      "prep_method": "How to prepare",
+      "best_time": "When to eat",
+      "prep_tips": "Preparation tips",
+      "why": "Why this helps the mood"
+    }
+  ]
+}
+
+No explanation, no markdown, no extra text. Just pure JSON."""
 
     fun suggestionPrompt(mood: String, goalMood: String?, symptoms: List<String>, foods: List<Food>): String {
         val foodDb = foods.joinToString(separator = "\n") { f ->
-            "- ${'$'}{f.name}: moods=${'$'}{f.moods.joinToString()}, nutrients=${'$'}{f.nutrients.joinToString()}, compounds=${'$'}{f.compounds.joinToString()}"
+            "- ${f.name}: moods=${f.moods.joinToString()}, nutrients=${f.nutrients.joinToString()}, compounds=${f.compounds.joinToString()}"
         }
         val sym = if (symptoms.isEmpty()) "none" else symptoms.joinToString()
         val goal = goalMood ?: "not specified"
         return """
             Context food-db:
-            ${'$'}foodDb
+            $foodDb
 
             User state:
-            - mood: ${'$'}mood
-            - symptoms: ${'$'}sym
-            - goal mood: ${'$'}goal
+            - mood: $mood
+            - symptoms: $sym
+            - goal mood: $goal
 
             Task:
-            Suggest the top 3 foods from the food-db that best improve the user's state. For each, include: short name, 1-line why it's helpful (based on nutrients/compounds), and a simple serving suggestion. Keep total under 120 words.
+            Suggest the top 3 foods from the food-db that best improve the user's state. Output JSON only using the schema from the system prompt.
         """.trimIndent()
     }
 }
