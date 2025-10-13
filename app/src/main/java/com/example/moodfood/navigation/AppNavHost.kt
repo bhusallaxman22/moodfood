@@ -49,10 +49,32 @@ fun AppNavHost(
                 OnboardingScreen(navController = navController)
             }
             composable(NavRoute.Login.route) {
-                LoginScreen(navController = navController)
+                LoginScreen(
+                    onSignInSuccess = {
+                        onOnboardingComplete()
+                        navController.navigate(NavRoute.Home.route) {
+                            popUpTo(0)
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateToSignup = {
+                        navController.navigate(NavRoute.Signup.route)
+                    }
+                )
             }
             composable(NavRoute.Signup.route) {
-                SignupScreen(navController = navController)
+                SignupScreen(
+                    onSignUpSuccess = {
+                        onOnboardingComplete()
+                        navController.navigate(NavRoute.Home.route) {
+                            popUpTo(0)
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateToLogin = {
+                        navController.popBackStack()
+                    }
+                )
             }
             composable(NavRoute.Tutorial.route) {
                 TutorialScreen(
