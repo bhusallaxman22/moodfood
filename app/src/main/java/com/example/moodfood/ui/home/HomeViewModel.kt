@@ -40,7 +40,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     fun setGoal(value: String) { _state.value = _state.value.copy(goal = value) }
     fun setSymptoms(list: List<String>) { _state.value = _state.value.copy(symptoms = list) }
 
-    fun getSuggestion() {
+    fun getSuggestion(navController: NavController? = null) {
         val apiKey = BuildConfig.OPENROUTER_API_KEY
         Log.d("OpenRouter", "API key from BuildConfig: length=${apiKey.length}, value='${apiKey.take(20)}...'")
         if (apiKey.isBlank()) {
@@ -58,6 +58,10 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
                 SuggestionCache.currentSuggestion = suggestion // Cache the suggestion
                 Log.d("HomeViewModel", "Cached suggestion: ${suggestion.meal.name}")
                 _state.value = _state.value.copy(loading = false, suggestion = suggestion)
+                
+                // Automatically navigate to detail screen if navController is provided
+                navController?.navigate(NavRoute.SuggestionDetail.route)
+                
                 // update recent in background
                 repo.recent().stateIn(viewModelScope).value.let { list ->
                     _state.value = _state.value.copy(recent = list)

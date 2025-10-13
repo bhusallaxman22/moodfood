@@ -65,7 +65,7 @@ fun HomeScreen(navController: NavController) {
                 }
             )
         }
-        Button(onClick = { vm.getSuggestion() }, enabled = state.mood.isNotBlank() && !state.loading, modifier = Modifier.align(Alignment.End)) {
+        Button(onClick = { vm.getSuggestion(navController) }, enabled = state.mood.isNotBlank() && !state.loading, modifier = Modifier.align(Alignment.End)) {
             Text("Get suggestion")
         }
         if (state.loading) {
@@ -73,16 +73,9 @@ fun HomeScreen(navController: NavController) {
         }
         state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         
-        state.suggestion?.let { suggestion ->
-            SuggestionPreviewCard(
-                suggestion = suggestion,
-                onClick = { 
-                    Log.d("HomeScreen", "Navigating to suggestion detail for: ${suggestion.meal.name}")
-                    navController.navigate(NavRoute.SuggestionDetail.route) 
-                }
-            )
-        }
-
+        // Suggestion preview card removed - now navigates directly to detail screen
+        // when suggestion is loaded
+        
         if (state.recent.isNotEmpty()) {
             Text("Recent suggestions", style = MaterialTheme.typography.titleMedium)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
