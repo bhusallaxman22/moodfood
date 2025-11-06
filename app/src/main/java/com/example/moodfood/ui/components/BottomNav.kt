@@ -1,6 +1,7 @@
 package com.example.moodfood.ui.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AutoGraph
 import androidx.compose.material.icons.filled.Home
@@ -32,6 +33,7 @@ data class BottomNavItem(
 fun BottomBar(navController: NavHostController) {
     val items = listOf(
         BottomNavItem(NavRoute.Home.route, "Home", Icons.Filled.Home),
+        BottomNavItem(NavRoute.Recipes.route, "Recipes", Icons.Filled.List),
         BottomNavItem(NavRoute.Progress.route, "Progress", Icons.Filled.AutoGraph),
         BottomNavItem(NavRoute.Trends.route, "Trends", Icons.Filled.QueryStats),
         BottomNavItem(NavRoute.Mindfulness.route, "Mindful", Icons.Filled.Psychology),

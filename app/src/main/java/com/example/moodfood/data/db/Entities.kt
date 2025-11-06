@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class SuggestionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val timestamp: Long,
+    val name: String,
     val mood: String,
     val goal: String?,
     val symptomsCsv: String,

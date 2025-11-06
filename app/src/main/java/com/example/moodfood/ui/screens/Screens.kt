@@ -1,23 +1,37 @@
 package com.example.moodfood.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.moodfood.data.db.AppDatabase
+import com.example.moodfood.data.db.SuggestionDao
 import com.example.moodfood.ui.home.HomeViewModel
 import com.example.moodfood.data.models.NutritionSuggestion
 import com.example.moodfood.data.db.SuggestionEntity
-import com.example.moodfood.navigation.NavRoute
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -355,6 +369,97 @@ private fun SuggestionList(items: List<NutritionSuggestion>) {
             NutritionSuggestionCard(suggestion)
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RecipesScreen() {
+    val context = LocalContext.current
+    val database = remember { AppDatabase.get(context) }
+    val dao = remember { database.suggestionDao() }
+
+    val recipes by dao.getAllSuggestions().collectAsState(initial = emptyList())
+
+    var searchQuery by remember { mutableStateOf("") }
+    val filteredRecipes = remember(recipes, searchQuery) {
+        if (searchQuery.isEmpty()) recipes
+        else recipes.filter { it.mood.contains(searchQuery, ignoreCase = true) }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text("Search by mood") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        singleLine = true
+                    )
+                }
+            )
+        },
+        bottomBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                // Buttons for navigation
+                Button(onClick = { /* handle favorites */ }) {
+                    Icon(Icons.Filled.Favorite, contentDescription = "Favorites")
+                    Spacer(Modifier.width(4.dp))
+                    Text("Favorites")
+                }
+                Button(onClick = { /* handle history */ }) {
+                    Icon(Icons.Filled.History, contentDescription = "History")
+                    Spacer(Modifier.width(4.dp))
+                    Text("History")
+                }
+                Button(onClick = { /* handle saved */ }) {
+                    Icon(Icons.Filled.Save, contentDescription = "Saved")
+                    Spacer(Modifier.width(4.dp))
+                    Text("Saved")
+                }
+            }
+        },
+        content = { innerPadding ->
+            if (filteredRecipes.isEmpty()) {
+                // Show message if no recipes found
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No recipes found")
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    items(filteredRecipes) { recipe ->
+                        Text(
+                            text = recipe.mood,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    // Handle click if needed
+                                }
+                                .padding(16.dp)
+                        )
+                        Divider()
+                    }
+                }
+            }
+        }
+    )
 }
 
 @Composable
