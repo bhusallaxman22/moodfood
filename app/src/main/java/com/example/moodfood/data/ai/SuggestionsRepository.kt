@@ -1,6 +1,7 @@
 package com.example.moodfood.data.ai
 
 import android.content.Context
+import android.service.controls.ControlsProviderService.TAG
 import com.example.moodfood.BuildConfig
 import com.example.moodfood.data.db.AppDatabase
 import com.example.moodfood.data.db.SuggestionEntity
@@ -12,6 +13,8 @@ import com.example.moodfood.data.models.Nutrition
 import com.example.moodfood.data.nutrition.MoodNutritionService
 import kotlinx.coroutines.flow.Flow
 import android.util.Log
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import org.json.JSONObject
 import org.json.JSONException
 import java.util.*
@@ -29,12 +32,12 @@ class SuggestionsRepository(private val service: OpenRouterService, private val 
         
         val payload = """
                         {
-                            "model": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
+                            "model": "google/gemini-2.5-flash-lite",
                             "messages": [
                                 {"role": "system", "content": ${jsonEscape(systemPrompt)}},
                                 {"role": "user", content: ${jsonEscape(prompt)}}
                             ],
-                            "max_tokens": 600,
+                            "max_tokens": 900,
                             "temperature": 0.7
                         }
                 """.trimIndent()
@@ -50,25 +53,27 @@ class SuggestionsRepository(private val service: OpenRouterService, private val 
         }
         
         val raw = resp.body() ?: "{}"
-        Log.d("OpenRouter", "Raw API response: $raw")
+
+        Log.i("Raw AI Response", raw)
         
         return try {
             val suggestion = parseNutritionSuggestion(raw)
             
             // Debug log the parsed suggestion
-            Log.d("OpenRouter", "Parsed suggestion: Title='${suggestion.title}', Meal='${suggestion.meal.name}', Ingredients count=${suggestion.ingredients.size}, Prep steps=${suggestion.preparation.size}, Tips=${suggestion.tips.size}")
+            //Log.d("OpenRouter", "Parsed suggestion: Title='${suggestion.title}', Meal='${suggestion.meal.name}', Ingredients count=${suggestion.ingredients.size}, Prep steps=${suggestion.preparation.size}, Tips=${suggestion.tips.size}")
             
             // Save to database
             AppDatabase.get(context).suggestionDao().insert(
                 SuggestionEntity(
                     timestamp = System.currentTimeMillis(),
+                    name = suggestion.title,
                     mood = mood,
                     goal = goal,
                     symptomsCsv = "",
                     json = raw
                 )
             )
-            
+
             suggestion
         } catch (e: Exception) {
             Log.e("OpenRouter", "Error parsing suggestion: ${e.message}")
@@ -107,7 +112,8 @@ The JSON must follow this exact structure:
     "calories": "string like '300-400 calories'",
     "mainNutrients": ["nutrient1", "nutrient2", "nutrient3"]
   }
-}"""
+}
+"""
     }
     
     private fun buildPrompt(mood: String, goal: String, foods: List<String>, nutrients: List<String>): String {
@@ -194,7 +200,7 @@ Please provide a nutrition suggestion in the JSON format specified in the system
         )
     }
     
-    private fun generateFallbackSuggestion(mood: String, goal: String, foods: List<String>, nutrients: List<String>): NutritionSuggestion {
+    private suspend fun generateFallbackSuggestion(mood: String, goal: String, foods: List<String>, nutrients: List<String>): NutritionSuggestion {
         val timeOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         val mealType = when {
             timeOfDay < 10 -> "breakfast"
@@ -202,14 +208,14 @@ Please provide a nutrition suggestion in the JSON format specified in the system
             timeOfDay < 18 -> "afternoon snack"
             else -> "dinner"
         }
-        
+
         val mainFood = foods.firstOrNull() ?: "healthy food"
         val secondFood = foods.getOrNull(1) ?: "nutritious ingredient"
         val nutrient1 = nutrients.firstOrNull() ?: "essential nutrients"
         val nutrient2 = nutrients.getOrNull(1) ?: "vitamins"
         
         Log.d("OpenRouter", "Generating fallback with foods: $foods, nutrients: $nutrients")
-        
+
         return NutritionSuggestion(
             title = "Perfect ${mealType.replaceFirstChar { it.titlecase() }} for Your ${mood.replaceFirstChar { it.titlecase() }} Mood",
             emoji = "🌟",

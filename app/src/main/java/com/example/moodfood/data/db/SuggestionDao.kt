@@ -11,6 +11,9 @@ interface SuggestionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: SuggestionEntity)
 
+    @Query("SELECT * FROM suggestions")
+    fun getAllSuggestions(): Flow<List<SuggestionEntity>>
+
     @Query("SELECT * FROM suggestions ORDER BY timestamp DESC LIMIT :limit")
     fun recent(limit: Int = 10): Flow<List<SuggestionEntity>>
 }

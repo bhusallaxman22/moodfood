@@ -2,22 +2,47 @@ package com.example.moodfood.ui.screens
 
 import android.util.Log
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.moodfood.data.db.AppDatabase
+import com.example.moodfood.data.db.SuggestionDao
 import com.example.moodfood.ui.home.HomeViewModel
 import com.example.moodfood.data.models.NutritionSuggestion
 import com.example.moodfood.data.db.SuggestionEntity
+import com.example.moodfood.data.models.Ingredient
+import com.example.moodfood.data.models.Meal
+import com.example.moodfood.data.models.Nutrition
+import com.example.moodfood.data.models.Timing
 import com.example.moodfood.navigation.NavRoute
+import com.example.moodfood.ui.home.HomeUiState
+import com.example.moodfood.ui.home.SuggestionCache
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -357,6 +382,99 @@ private fun SuggestionList(items: List<NutritionSuggestion>) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RecipesScreen(navController: NavController? = null) {
+
+    val context = LocalContext.current
+    val database = remember { AppDatabase.get(context) }
+    val dao = remember { database.suggestionDao() }
+
+    val recipes by dao.getAllSuggestions().collectAsState(initial = emptyList())
+
+    var searchQuery by remember { mutableStateOf("") }
+    val filteredRecipes = remember(recipes, searchQuery) {
+        if (searchQuery.isEmpty()) recipes
+        else recipes.filter { it.name.contains(searchQuery, ignoreCase = true) }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text("Search by mood") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        singleLine = true
+                    )
+                }
+            )
+        },
+        bottomBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                // Buttons for navigation
+                Button(onClick = { /* handle favorites */ }) {
+                    Icon(Icons.Filled.Favorite, contentDescription = "Favorites")
+                    Spacer(Modifier.width(4.dp))
+                    Text("Favorites")
+                }
+                Button(onClick = { /* handle history */ }) {
+                    Icon(Icons.Filled.History, contentDescription = "History")
+                    Spacer(Modifier.width(4.dp))
+                    Text("History")
+                }
+                Button(onClick = { /* handle saved */ }) {
+                    Icon(Icons.Filled.Save, contentDescription = "Saved")
+                    Spacer(Modifier.width(4.dp))
+                    Text("Saved")
+                }
+            }
+        },
+        content = { innerPadding ->
+            if (filteredRecipes.isEmpty()) {
+                // Show message if no recipes found
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No recipes found")
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    items(filteredRecipes) { recipe ->
+                        Text(
+                            text = recipe.name,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    val suggestion = parseNutritionSug(recipe.json)
+                                    SuggestionCache.currentSuggestion = suggestion
+                                    navController?.navigate(NavRoute.SuggestionDetail.route)
+                                }
+                                .padding(16.dp)
+                        )
+                    }
+                }
+            }
+        }
+    )
+}
+
 @Composable
 fun ProgressScreen() {
     CenterText("Progress")
@@ -378,7 +496,6 @@ fun ProfileScreen(
     onSignOut: () -> Unit = {}
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
-    
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -492,3 +609,83 @@ private fun CenterText(text: String) {
         Text(text, style = MaterialTheme.typography.headlineMedium)
     }
 }
+
+
+fun parseNutritionSug(raw: String): NutritionSuggestion {
+    // Extract content from OpenRouter response format
+    val actualJson = if (raw.contains("\"choices\"")) {
+        val responseObj = JSONObject(raw)
+        val choices = responseObj.optJSONArray("choices")
+        if (choices != null && choices.length() > 0) {
+            val firstChoice = choices.getJSONObject(0)
+            val message = firstChoice.optJSONObject("message")
+            message?.optString("content") ?: raw
+        } else raw
+    } else raw
+
+    Log.d("OpenRouter", "Extracted JSON: $actualJson")
+
+    // Clean the JSON response
+    var cleanedText = actualJson.trim()
+
+    // Remove markdown code blocks if present
+    cleanedText = cleanedText.replace(Regex("```json\\s*"), "").replace(Regex("```\\s*$"), "")
+
+    // Remove any potential explanatory text before/after JSON
+    cleanedText = cleanedText.replace(Regex("^[^{]*"), "").replace(Regex("[^}]*$"), "")
+
+    // Find JSON object boundaries
+    val startIndex = cleanedText.indexOf('{')
+    val lastIndex = cleanedText.lastIndexOf('}')
+
+    if (startIndex != -1 && lastIndex != -1 && startIndex < lastIndex) {
+        cleanedText = cleanedText.substring(startIndex, lastIndex + 1)
+    }
+
+    Log.d("OpenRouter", "Cleaned JSON: $cleanedText")
+
+    val jsonObj = JSONObject(cleanedText)
+
+    return NutritionSuggestion(
+        title = jsonObj.optString("title", "Mood-Boosting Nutrition"),
+        emoji = jsonObj.optString("emoji", "🌟"),
+        meal = jsonObj.optJSONObject("meal")?.let { mealObj ->
+            Meal(
+                name = mealObj.optString("name", "Healthy Meal"),
+                description = mealObj.optString("description", "A nutritious meal for your mood"),
+                prepTime = mealObj.optString("prepTime", "10 minutes")
+            )
+        } ?: Meal("Healthy Meal", "A nutritious meal for your mood", "10 minutes"),
+        ingredients = jsonObj.optJSONArray("ingredients")?.let { ingredientsArray ->
+            (0 until ingredientsArray.length()).map { i ->
+                val ingObj = ingredientsArray.getJSONObject(i)
+                Ingredient(
+                    name = ingObj.optString("name", "Healthy ingredient"),
+                    benefit = ingObj.optString("benefit", "Good for your health"),
+                    emoji = ingObj.optString("emoji", "🥗")
+                )
+            }
+        } ?: emptyList(),
+        timing = jsonObj.optJSONObject("timing")?.let { timingObj ->
+            Timing(
+                `when` = timingObj.optString("when", "Anytime"),
+                why = timingObj.optString("why", "Good for your mood")
+            )
+        } ?: Timing("Anytime", "Good for your mood"),
+        preparation = jsonObj.optJSONArray("preparation")?.let { prepArray ->
+            (0 until prepArray.length()).map { prepArray.getString(it) }
+        } ?: emptyList(),
+        tips = jsonObj.optJSONArray("tips")?.let { tipsArray ->
+            (0 until tipsArray.length()).map { tipsArray.getString(it) }
+        } ?: emptyList(),
+        nutrition = jsonObj.optJSONObject("nutrition")?.let { nutritionObj ->
+            Nutrition(
+                calories = nutritionObj.optString("calories", "300-400 calories"),
+                mainNutrients = nutritionObj.optJSONArray("mainNutrients")?.let { nutrientsArray ->
+                    (0 until nutrientsArray.length()).map { nutrientsArray.getString(it) }
+                } ?: emptyList()
+            )
+        } ?: Nutrition("300-400 calories", emptyList())
+    )
+}
+
