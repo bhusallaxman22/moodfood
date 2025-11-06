@@ -1,6 +1,7 @@
 package com.example.moodfood.data.ai
 
 import android.content.Context
+import android.service.controls.ControlsProviderService.TAG
 import com.example.moodfood.BuildConfig
 import com.example.moodfood.data.db.AppDatabase
 import com.example.moodfood.data.db.SuggestionEntity
@@ -31,12 +32,12 @@ class SuggestionsRepository(private val service: OpenRouterService, private val 
         
         val payload = """
                         {
-                            "model": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
+                            "model": "google/gemini-2.5-flash-lite",
                             "messages": [
                                 {"role": "system", "content": ${jsonEscape(systemPrompt)}},
                                 {"role": "user", content: ${jsonEscape(prompt)}}
                             ],
-                            "max_tokens": 600,
+                            "max_tokens": 900,
                             "temperature": 0.7
                         }
                 """.trimIndent()
@@ -52,13 +53,14 @@ class SuggestionsRepository(private val service: OpenRouterService, private val 
         }
         
         val raw = resp.body() ?: "{}"
-        Log.d("OpenRouter", "Raw API response: $raw")
+
+        Log.i("Raw AI Response", raw)
         
         return try {
             val suggestion = parseNutritionSuggestion(raw)
             
             // Debug log the parsed suggestion
-            Log.d("OpenRouter", "Parsed suggestion: Title='${suggestion.title}', Meal='${suggestion.meal.name}', Ingredients count=${suggestion.ingredients.size}, Prep steps=${suggestion.preparation.size}, Tips=${suggestion.tips.size}")
+            //Log.d("OpenRouter", "Parsed suggestion: Title='${suggestion.title}', Meal='${suggestion.meal.name}', Ingredients count=${suggestion.ingredients.size}, Prep steps=${suggestion.preparation.size}, Tips=${suggestion.tips.size}")
             
             // Save to database
             AppDatabase.get(context).suggestionDao().insert(
@@ -110,7 +112,8 @@ The JSON must follow this exact structure:
     "calories": "string like '300-400 calories'",
     "mainNutrients": ["nutrient1", "nutrient2", "nutrient3"]
   }
-}"""
+}
+"""
     }
     
     private fun buildPrompt(mood: String, goal: String, foods: List<String>, nutrients: List<String>): String {
@@ -212,21 +215,6 @@ Please provide a nutrition suggestion in the JSON format specified in the system
         val nutrient2 = nutrients.getOrNull(1) ?: "vitamins"
         
         Log.d("OpenRouter", "Generating fallback with foods: $foods, nutrients: $nutrients")
-
-
-        val testingVar = "1";
-        testingVar.apply { "+" }
-
-        AppDatabase.get(context).suggestionDao().insert(
-            SuggestionEntity(
-                timestamp = System.currentTimeMillis(),
-                name = "TEST NAME",
-                mood = mood,
-                goal = goal,
-                symptomsCsv = "",
-                json = testingVar
-            )
-        )
 
         return NutritionSuggestion(
             title = "Perfect ${mealType.replaceFirstChar { it.titlecase() }} for Your ${mood.replaceFirstChar { it.titlecase() }} Mood",

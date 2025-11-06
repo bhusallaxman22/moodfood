@@ -92,7 +92,7 @@ fun AppNavHost(
                 )
             }
             composable(NavRoute.Home.route) { HomeScreen(navController) }
-            composable(NavRoute.Recipes.route) { RecipesScreen() }
+            composable(NavRoute.Recipes.route) { RecipesScreen(navController) }
             composable(NavRoute.SuggestionDetail.route) { SuggestionDetailScreen(navController) }
             composable(NavRoute.Progress.route) { ProgressScreen() }
             composable(NavRoute.Trends.route) { TrendsScreen() }

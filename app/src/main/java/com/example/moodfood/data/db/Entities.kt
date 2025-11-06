@@ -2,6 +2,7 @@ package com.example.moodfood.data.db
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.moodfood.data.models.NutritionSuggestion
 
 @Entity(tableName = "suggestions")
 data class SuggestionEntity(
