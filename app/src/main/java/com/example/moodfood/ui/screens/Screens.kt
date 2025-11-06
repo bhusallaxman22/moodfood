@@ -468,7 +468,6 @@ fun RecipesScreen(navController: NavController? = null) {
                                 }
                                 .padding(16.dp)
                         )
-                        Divider()
                     }
                 }
             }
