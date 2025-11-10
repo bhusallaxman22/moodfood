@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -44,6 +46,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import org.json.JSONObject
 import java.text.SimpleDateFormat
+import androidx.compose.foundation.border
 import java.util.*
 
 @Composable
@@ -53,62 +56,184 @@ fun HomeScreen(navController: NavController) {
     var showAdvanced by remember { mutableStateOf(false) }
 
     val moods = listOf(
-        "😀 happy", "🙂 calm", "😔 low", "😬 anxious", "😤 irritable", "😩 stressed", "🥱 fatigued"
+        "😀 Happy", "🙂 Calm", "😔 Low", "😬 Anxious", "😤 Irritable", "😩 Stressed", "🥱 Fatigued"
     )
-    val positiveMoods = listOf("😀 happy", "🙂 calm", "😌 content", "💪 energetic")
-    val symptomsAll = listOf("anxious", "stressed", "fatigued", "low", "irritable", "brain fog", "restless")
+    val positiveMoods = listOf("😀 Happy", "🙂 Calm", "😌 Content", "💪 Energetic")
+    val symptomsAll = listOf("Anxious", "Stressed", "Fatigued", "Low", "Irritable", "Brain fog", "Restless")
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        Card { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Current mood", style = MaterialTheme.typography.titleMedium)
-            EmojiChips(items = moods, selected = state.mood, onSelect = vm::setMood)
-        }}
-        Card { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Goal mood", style = MaterialTheme.typography.titleMedium)
-            EmojiChips(items = positiveMoods, selected = state.goal, onSelect = vm::setGoal)
-        }}
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = { showAdvanced = !showAdvanced }) {
-                Text(if (showAdvanced) "Hide advanced" else "Advanced")
-            }
-        }
-    if (showAdvanced) {
-            SymptomChips(
-                all = symptomsAll,
-                selected = state.symptoms.toSet(),
-                onToggle = { tag ->
-                    val next = state.symptoms.toMutableList().also {
-                        if (it.contains(tag)) it.remove(tag) else it.add(tag)
-                    }
-                    vm.setSymptoms(next)
-                }
+        // Welcome Header
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = "MoodFood",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "How are you feeling today?",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Button(onClick = { vm.getSuggestion(navController) }, enabled = state.mood.isNotBlank() && !state.loading, modifier = Modifier.align(Alignment.End)) {
-            Text("Get suggestion")
+
+        // Current Mood Card
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "🎭",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    Text(
+                        text = "Current Mood",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                EmojiChips(items = moods, selected = state.mood, onSelect = vm::setMood)
+            }
         }
+
+        // Goal Mood Card
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "🎯",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    Text(
+                        text = "Goal Mood",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                EmojiChips(items = positiveMoods, selected = state.goal, onSelect = vm::setGoal)
+            }
+        }
+
+        // Advanced Options
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(onClick = { showAdvanced = !showAdvanced }) {
+                        Text(
+                            if (showAdvanced) "▼ Hide Advanced Options" else "▶ Show Advanced Options",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                }
+
+                if (showAdvanced) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Additional Symptoms",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SymptomChips(
+                        all = symptomsAll,
+                        selected = state.symptoms.toSet(),
+                        onToggle = { tag ->
+                            val next = state.symptoms.toMutableList().also {
+                                if (it.contains(tag)) it.remove(tag) else it.add(tag)
+                            }
+                            vm.setSymptoms(next)
+                        }
+                    )
+                }
+            }
+        }
+
+        // Get Suggestion Button
+        Button(
+            onClick = { vm.getSuggestion(navController) },
+            enabled = state.mood.isNotBlank() && !state.loading,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            Text(
+                text = if (state.loading) "Generating..." else "✨ Get Personalized Suggestion",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+
         if (state.loading) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primary
+            )
         }
-        state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        
-        // Suggestion preview card removed - now navigates directly to detail screen
-        // when suggestion is loaded
-        
+
+        state.error?.let {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                )
+            ) {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+
+        // Recent Suggestions
         if (state.recent.isNotEmpty()) {
-            Text("Recent suggestions", style = MaterialTheme.typography.titleMedium)
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "📜 Recent Suggestions",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 state.recent.forEach { entity ->
                     RecentSuggestionCard(
                         entity = entity,
                         onClick = {
-                            // Try to parse and cache the suggestion for detail view
                             vm.loadRecentSuggestion(entity, navController)
                         }
                     )
@@ -121,13 +246,33 @@ fun HomeScreen(navController: NavController) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SymptomChips(all: List<String>, selected: Set<String>, onToggle: (String) -> Unit) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
         all.forEach { tag ->
             val chosen = tag in selected
             FilterChip(
                 selected = chosen,
                 onClick = { onToggle(tag) },
-                label = { Text(tag) }
+                label = {
+                    Text(
+                        text = tag,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = chosen,
+                    borderColor = if (chosen) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                    borderWidth = if (chosen) 2.dp else 1.dp
+                )
             )
         }
     }
@@ -135,15 +280,50 @@ private fun SymptomChips(all: List<String>, selected: Set<String>, onToggle: (St
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun EmojiChips(items: List<String>, selected: String, onSelect: (String) -> Unit) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+private fun EmojiChips(
+    items: List<String>,
+    selected: String,
+    onSelect: (String) -> Unit
+) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         items.forEach { label ->
             val chosen = label == selected
-            FilterChip(
-                selected = chosen,
-                onClick = { onSelect(label) },
-                label = { Text(label) }
-            )
+            val emoji = label.split(" ").firstOrNull() ?: ""
+            val text = label.substringAfter(" ").trim()
+
+            Surface(
+                color = if (chosen) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.surface,
+                tonalElevation = if (chosen) 4.dp else 1.dp,
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier
+                    .defaultMinSize(minWidth = 100.dp)
+                    .clickable { onSelect(label) }
+                    .border(
+                        width = if (chosen) 3.dp else 1.dp,
+                        color = if (chosen) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                        shape = MaterialTheme.shapes.medium
+                    )
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(emoji, style = MaterialTheme.typography.headlineMedium, fontSize = 32.sp)
+                    Text(
+                        text,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = if (chosen) FontWeight.Bold else FontWeight.Normal,
+                        color = if (chosen) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
         }
     }
 }
@@ -187,7 +367,7 @@ private fun SuggestionPreviewCard(
                     )
                 }
             }
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -215,47 +395,63 @@ private fun RecentSuggestionCard(
 ) {
     val dateFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
     val date = dateFormat.format(Date(entity.timestamp))
-    
-    Card(
+
+    ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            // Icon/Emoji Section
+            Card(
+                modifier = Modifier.size(56.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+                shape = MaterialTheme.shapes.medium
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(
-                        text = "From ${entity.mood} to ${entity.goal ?: "feel better"}",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = date,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        text = "🍽️",
+                        style = MaterialTheme.typography.headlineMedium
                     )
                 }
+            }
+
+            // Content Section
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Text(
-                    text = "👁️",
-                    style = MaterialTheme.typography.titleMedium
+                    text = "${entity.mood} → ${entity.goal ?: "better"}",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    text = date,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                )
+                Text(
+                    text = "Tap to view details →",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
-            
-            Text(
-                text = "Tap to view suggestion details",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary
-            )
         }
     }
 }
@@ -263,11 +459,11 @@ private fun RecentSuggestionCard(
 @Composable
 private fun NutritionSuggestionCard(suggestion: NutritionSuggestion) {
     var isExpanded by remember { mutableStateOf(false) }
-    
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = { isExpanded = !isExpanded }
-    ) { 
+    ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -280,17 +476,17 @@ private fun NutritionSuggestionCard(suggestion: NutritionSuggestion) {
                 Text(suggestion.emoji, style = MaterialTheme.typography.headlineMedium)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    suggestion.title, 
+                    suggestion.title,
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    if (isExpanded) "▼" else "▶", 
+                    if (isExpanded) "▼" else "▶",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-            
+
             // Meal info - always visible
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                 Column(modifier = Modifier.padding(12.dp)) {
@@ -299,7 +495,7 @@ private fun NutritionSuggestionCard(suggestion: NutritionSuggestion) {
                     Text("Prep time: ${suggestion.meal.prepTime}", style = MaterialTheme.typography.bodySmall)
                 }
             }
-            
+
             // Expandable content
             if (isExpanded) {
                 // Ingredients
@@ -317,7 +513,7 @@ private fun NutritionSuggestionCard(suggestion: NutritionSuggestion) {
                 } else {
                     Text("No ingredients provided", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                
+
                 // Timing
                 Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.1f))) {
                     Column(modifier = Modifier.padding(12.dp)) {
@@ -325,7 +521,7 @@ private fun NutritionSuggestionCard(suggestion: NutritionSuggestion) {
                         Text("${suggestion.timing.`when`} - ${suggestion.timing.why}", style = MaterialTheme.typography.bodyMedium)
                     }
                 }
-                
+
                 // Preparation steps
                 if (suggestion.preparation.isNotEmpty()) {
                     Text("Preparation", style = MaterialTheme.typography.titleMedium)
@@ -335,7 +531,7 @@ private fun NutritionSuggestionCard(suggestion: NutritionSuggestion) {
                 } else {
                     Text("No preparation steps provided", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                
+
                 // Tips
                 if (suggestion.tips.isNotEmpty()) {
                     Text("Tips", style = MaterialTheme.typography.titleMedium)
@@ -345,15 +541,15 @@ private fun NutritionSuggestionCard(suggestion: NutritionSuggestion) {
                 } else {
                     Text("No tips provided", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                
+
                 // Nutrition info
                 Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text("Nutrition", style = MaterialTheme.typography.titleSmall)
                         Text(suggestion.nutrition.calories, style = MaterialTheme.typography.bodyMedium)
                         if (suggestion.nutrition.mainNutrients.isNotEmpty()) {
-                            Text("Key nutrients: ${suggestion.nutrition.mainNutrients.joinToString(", ")}", 
-                                 style = MaterialTheme.typography.bodySmall)
+                            Text("Key nutrients: ${suggestion.nutrition.mainNutrients.joinToString(", ")}",
+                                style = MaterialTheme.typography.bodySmall)
                         } else {
                             Text("No nutrient information provided", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -503,7 +699,7 @@ fun ProfileScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text("Profile", style = MaterialTheme.typography.headlineMedium)
-        
+
         // User info section
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -519,7 +715,7 @@ fun ProfileScreen(
                 Text("Manage your account preferences", style = MaterialTheme.typography.bodyMedium)
             }
         }
-        
+
         // Settings options
         Card(
             modifier = Modifier.fillMaxWidth()
@@ -529,21 +725,21 @@ fun ProfileScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text("Settings", style = MaterialTheme.typography.titleMedium)
-                
+
                 OutlinedButton(
                     onClick = { /* TODO: Edit profile */ },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Edit Profile")
                 }
-                
+
                 OutlinedButton(
                     onClick = { /* TODO: Change password */ },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Change Password")
                 }
-                
+
                 OutlinedButton(
                     onClick = { /* TODO: Privacy settings */ },
                     modifier = Modifier.fillMaxWidth()
@@ -552,7 +748,7 @@ fun ProfileScreen(
                 }
             }
         }
-        
+
         // Logout button
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -573,7 +769,7 @@ fun ProfileScreen(
             }
         }
     }
-    
+
     // Logout confirmation dialog
     if (showLogoutDialog) {
         AlertDialog(
