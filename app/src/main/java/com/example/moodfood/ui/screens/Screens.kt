@@ -2,6 +2,7 @@ package com.example.moodfood.ui.screens
 
 import android.util.Log
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
@@ -46,7 +47,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import org.json.JSONObject
 import java.text.SimpleDateFormat
-import androidx.compose.foundation.border
 import java.util.*
 
 @Composable
@@ -59,7 +59,7 @@ fun HomeScreen(navController: NavController) {
         "😀 Happy", "🙂 Calm", "😔 Low", "😬 Anxious", "😤 Irritable", "😩 Stressed", "🥱 Fatigued"
     )
     val positiveMoods = listOf("😀 Happy", "🙂 Calm", "😌 Content", "💪 Energetic")
-    val symptomsAll = listOf("Anxious", "Stressed", "Fatigued", "Low", "Irritable", "Brain fog", "Restless")
+    val symptomsAll = listOf("Anxious", "Stressed", "Fatigued", "Low", "Irritable", "Brain Fog", "Restless")
 
     Column(
         modifier = Modifier
@@ -280,11 +280,7 @@ private fun SymptomChips(all: List<String>, selected: Set<String>, onToggle: (St
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun EmojiChips(
-    items: List<String>,
-    selected: String,
-    onSelect: (String) -> Unit
-) {
+private fun EmojiChips(items: List<String>, selected: String, onSelect: (String) -> Unit) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -294,33 +290,46 @@ private fun EmojiChips(
             val emoji = label.split(" ").firstOrNull() ?: ""
             val text = label.substringAfter(" ").trim()
 
-            Surface(
-                color = if (chosen) MaterialTheme.colorScheme.primaryContainer
-                else MaterialTheme.colorScheme.surface,
-                tonalElevation = if (chosen) 4.dp else 1.dp,
-                shape = MaterialTheme.shapes.medium,
+            ElevatedCard(
+                onClick = { onSelect(label) },
                 modifier = Modifier
                     .defaultMinSize(minWidth = 100.dp)
-                    .clickable { onSelect(label) }
-                    .border(
-                        width = if (chosen) 3.dp else 1.dp,
-                        color = if (chosen) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                        shape = MaterialTheme.shapes.medium
-                    )
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .then(
+                        if (chosen) Modifier.border(
+                            width = 3.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = MaterialTheme.shapes.medium
+                        ) else Modifier
+                    ),
+                elevation = CardDefaults.elevatedCardElevation(
+                    defaultElevation = if (chosen) 8.dp else 2.dp
+                ),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = if (chosen)
+                        MaterialTheme.colorScheme.primaryContainer
+                    else
+                        MaterialTheme.colorScheme.surface
+                )
             ) {
                 Column(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(emoji, style = MaterialTheme.typography.headlineMedium, fontSize = 32.sp)
                     Text(
-                        text,
+                        text = emoji,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontSize = 32.sp
+                    )
+                    Text(
+                        text = text,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = if (chosen) FontWeight.Bold else FontWeight.Normal,
-                        color = if (chosen) MaterialTheme.colorScheme.onPrimaryContainer
-                        else MaterialTheme.colorScheme.onSurface
+                        color = if (chosen)
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        else
+                            MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -884,4 +893,3 @@ fun parseNutritionSug(raw: String): NutritionSuggestion {
         } ?: Nutrition("300-400 calories", emptyList())
     )
 }
-
