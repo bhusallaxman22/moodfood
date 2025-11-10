@@ -10,7 +10,7 @@ import com.example.moodfood.data.auth.UserDao
 import com.example.moodfood.data.auth.UserSessionDao
 
 @Database(
-    entities = [SuggestionEntity::class, UserEntity::class, UserSessionEntity::class], 
+    entities = [SuggestionEntity::class, UserEntity::class, UserSessionEntity::class],
     version = 3,
     exportSchema = false
 )
@@ -26,7 +26,10 @@ abstract class AppDatabase : RoomDatabase() {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "moodfood.db"
-            ).build().also { INSTANCE = it }
+            )
+                .fallbackToDestructiveMigration() // Allow destructive migration during development
+                .build()
+                .also { INSTANCE = it }
         }
     }
 }
