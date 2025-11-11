@@ -6,6 +6,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,9 +27,22 @@ import android.util.Log
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SuggestionDetailScreen(navController: NavController) {
+fun SuggestionDetailScreen(
+    navController: NavController,
+    viewModel: SuggestionDetailViewModel = viewModel()
+) {
     val suggestion = SuggestionCache.currentSuggestion
-    Log.d("SuggestionDetail", "Loaded suggestion: ${suggestion?.meal?.name ?: "null"}")
+    val suggestionId = SuggestionCache.currentSuggestionId
+    val state by viewModel.state.collectAsState()
+    
+    // Load status when screen loads
+    LaunchedEffect(suggestionId) {
+        suggestionId?.let {
+            viewModel.loadSuggestionStatus(it)
+        }
+    }
+    
+    Log.d("SuggestionDetail", "Loaded suggestion: ${suggestion?.meal?.name ?: "null"} (ID: $suggestionId)")
     
     Scaffold(
         topBar = {
@@ -42,6 +59,31 @@ fun SuggestionDetailScreen(navController: NavController) {
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
                         )
+                    }
+                },
+                actions = {
+                    if (suggestionId != null) {
+                        // Favorite button
+                        IconButton(
+                            onClick = { viewModel.toggleFavorite(suggestionId) }
+                        ) {
+                            Icon(
+                                imageVector = if (state.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                                contentDescription = if (state.isFavorite) "Remove from favorites" else "Add to favorites",
+                                tint = if (state.isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        
+                        // Save button
+                        IconButton(
+                            onClick = { viewModel.toggleSaved(suggestionId) }
+                        ) {
+                            Icon(
+                                imageVector = if (state.isSaved) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
+                                contentDescription = if (state.isSaved) "Remove from saved" else "Save recipe",
+                                tint = if (state.isSaved) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
             )

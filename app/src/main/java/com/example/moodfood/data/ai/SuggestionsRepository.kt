@@ -23,7 +23,7 @@ class SuggestionsRepository(private val service: OpenRouterService, private val 
     
     private val moodNutritionService = MoodNutritionService(context)
     
-    suspend fun getNutritionSuggestion(mood: String, goal: String): NutritionSuggestion {
+    suspend fun getNutritionSuggestion(mood: String, goal: String): Pair<NutritionSuggestion, Long> {
         val moodInfo = moodNutritionService.getMoodNutrition(mood)
             ?: throw Exception("No nutrition data found for mood: $mood")
         
@@ -49,7 +49,18 @@ class SuggestionsRepository(private val service: OpenRouterService, private val 
             val code = resp.code()
             val err = resp.errorBody()?.string()?.take(500)
             Log.e("OpenRouter", "HTTP $code error body: " + (err ?: "<none>"))
-            return generateFallbackSuggestion(mood, goal, moodInfo.foods, moodInfo.nutrients)
+            val fallback = generateFallbackSuggestion(mood, goal, moodInfo.foods, moodInfo.nutrients)
+            val id = AppDatabase.get(context).suggestionDao().insert(
+                SuggestionEntity(
+                    timestamp = System.currentTimeMillis(),
+                    name = fallback.title,
+                    mood = mood,
+                    goal = goal,
+                    symptomsCsv = "",
+                    json = "{}"
+                )
+            )
+            return Pair(fallback, id)
         }
         
         val raw = resp.body() ?: "{}"
@@ -63,7 +74,7 @@ class SuggestionsRepository(private val service: OpenRouterService, private val 
             //Log.d("OpenRouter", "Parsed suggestion: Title='${suggestion.title}', Meal='${suggestion.meal.name}', Ingredients count=${suggestion.ingredients.size}, Prep steps=${suggestion.preparation.size}, Tips=${suggestion.tips.size}")
             
             // Save to database
-            AppDatabase.get(context).suggestionDao().insert(
+            val id = AppDatabase.get(context).suggestionDao().insert(
                 SuggestionEntity(
                     timestamp = System.currentTimeMillis(),
                     name = suggestion.title,
@@ -74,10 +85,21 @@ class SuggestionsRepository(private val service: OpenRouterService, private val 
                 )
             )
 
-            suggestion
+            Pair(suggestion, id)
         } catch (e: Exception) {
             Log.e("OpenRouter", "Error parsing suggestion: ${e.message}")
-            generateFallbackSuggestion(mood, goal, moodInfo.foods, moodInfo.nutrients)
+            val fallback = generateFallbackSuggestion(mood, goal, moodInfo.foods, moodInfo.nutrients)
+            val id = AppDatabase.get(context).suggestionDao().insert(
+                SuggestionEntity(
+                    timestamp = System.currentTimeMillis(),
+                    name = fallback.title,
+                    mood = mood,
+                    goal = goal,
+                    symptomsCsv = "",
+                    json = "{}"
+                )
+            )
+            Pair(fallback, id)
         }
     }
     

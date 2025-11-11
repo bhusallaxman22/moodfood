@@ -16,13 +16,22 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -220,26 +229,9 @@ fun HomeScreen(navController: NavController) {
                 )
             }
         }
-
-        // Recent Suggestions
-        if (state.recent.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "📜 Recent Suggestions",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                state.recent.forEach { entity ->
-                    RecentSuggestionCard(
-                        entity = entity,
-                        onClick = {
-                            vm.loadRecentSuggestion(entity, navController)
-                        }
-                    )
-                }
-            }
-        }
+        
+        // Add bottom spacing for nav bar
+        Spacer(modifier = Modifier.height(80.dp))
     }
 }
 
@@ -587,104 +579,6 @@ private fun SuggestionList(items: List<NutritionSuggestion>) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RecipesScreen(navController: NavController? = null) {
-
-    val context = LocalContext.current
-    val database = remember { AppDatabase.get(context) }
-    val dao = remember { database.suggestionDao() }
-
-    val recipes by dao.getAllSuggestions().collectAsState(initial = emptyList())
-
-    var searchQuery by remember { mutableStateOf("") }
-    val filteredRecipes = remember(recipes, searchQuery) {
-        if (searchQuery.isEmpty()) recipes
-        else recipes.filter { it.name.contains(searchQuery, ignoreCase = true) }
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    TextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        placeholder = { Text("Search by mood") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        singleLine = true
-                    )
-                }
-            )
-        },
-        bottomBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                // Buttons for navigation
-                Button(onClick = { /* handle favorites */ }) {
-                    Icon(Icons.Filled.Favorite, contentDescription = "Favorites")
-                    Spacer(Modifier.width(4.dp))
-                    Text("Favorites")
-                }
-                Button(onClick = { /* handle history */ }) {
-                    Icon(Icons.Filled.History, contentDescription = "History")
-                    Spacer(Modifier.width(4.dp))
-                    Text("History")
-                }
-                Button(onClick = { /* handle saved */ }) {
-                    Icon(Icons.Filled.Save, contentDescription = "Saved")
-                    Spacer(Modifier.width(4.dp))
-                    Text("Saved")
-                }
-            }
-        },
-        content = { innerPadding ->
-            if (filteredRecipes.isEmpty()) {
-                // Show message if no recipes found
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No recipes found")
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                ) {
-                    items(filteredRecipes) { recipe ->
-                        Text(
-                            text = recipe.name,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    val suggestion = parseNutritionSug(recipe.json)
-                                    SuggestionCache.currentSuggestion = suggestion
-                                    navController?.navigate(NavRoute.SuggestionDetail.route)
-                                }
-                                .padding(16.dp)
-                        )
-                    }
-                }
-            }
-        }
-    )
-}
-
-@Composable
-fun ProgressScreen() {
-    CenterText("Progress")
-}
-
 @Composable
 fun TrendsScreen() {
     CenterText("Trends")
@@ -696,111 +590,69 @@ fun MindfulnessScreen() {
 }
 
 @Composable
-fun ProfileScreen(
-    navController: NavController? = null,
-    onSignOut: () -> Unit = {}
+private fun ProfileMenuItem(
+    icon: String,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit
 ) {
-    var showLogoutDialog by remember { mutableStateOf(false) }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = androidx.compose.ui.graphics.Color(0xFFF8FAFC)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Text("Profile", style = MaterialTheme.typography.headlineMedium)
-
-        // User info section
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text("Account Settings", style = MaterialTheme.typography.titleMedium)
-                Text("Manage your account preferences", style = MaterialTheme.typography.bodyMedium)
-            }
-        }
-
-        // Settings options
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text("Settings", style = MaterialTheme.typography.titleMedium)
-
-                OutlinedButton(
-                    onClick = { /* TODO: Edit profile */ },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Edit Profile")
-                }
-
-                OutlinedButton(
-                    onClick = { /* TODO: Change password */ },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Change Password")
-                }
-
-                OutlinedButton(
-                    onClick = { /* TODO: Privacy settings */ },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Privacy Settings")
-                }
-            }
-        }
-
-        // Logout button
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer
-            )
-        ) {
-            Button(
-                onClick = { showLogoutDialog = true },
+            // Icon background
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                )
+                    .size(48.dp)
+                    .background(
+                        androidx.compose.ui.graphics.Color.White,
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Text("Sign Out", color = MaterialTheme.colorScheme.onError)
+                Text(
+                    text = icon,
+                    fontSize = 24.sp
+                )
             }
+            
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = androidx.compose.ui.graphics.Color(0xFF2D3748)
+                    )
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = androidx.compose.ui.graphics.Color(0xFF718096)
+                    )
+                )
+            }
+            
+            Text(
+                text = "→",
+                fontSize = 20.sp,
+                color = androidx.compose.ui.graphics.Color(0xFF718096)
+            )
         }
-    }
-
-    // Logout confirmation dialog
-    if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Sign Out") },
-            text = { Text("Are you sure you want to sign out?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showLogoutDialog = false
-                        onSignOut()
-                    }
-                ) {
-                    Text("Sign Out")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
     }
 }
 

@@ -13,4 +13,6 @@ data class SuggestionEntity(
     val goal: String?,
     val symptomsCsv: String,
     val json: String,
+    val isSaved: Boolean = false,
+    val isFavorite: Boolean = false
 )
