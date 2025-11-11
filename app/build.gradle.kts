@@ -34,7 +34,7 @@ android {
         }
         debug {
             // TEMP: Hardcode API key for local dev to avoid 401
-            buildConfigField("String", "OPENROUTER_API_KEY", "\"SECRET_KEY_FOR_OPEN_API_KEY\"")
+            buildConfigField("String", "OPENROUTER_API_KEY", "\"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\"")
         buildConfigField("String", "OPENROUTER_MODEL", "\"${'$'}model\"")
         buildConfigField("String", "OPENROUTER_REFERER", "\"${'$'}referer\"")
         }

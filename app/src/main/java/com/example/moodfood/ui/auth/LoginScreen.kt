@@ -14,6 +14,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
 import com.example.moodfood.data.auth.AuthRepository
@@ -66,9 +67,9 @@ fun LoginScreen(
                 )
             }
         }
-
+        
         Spacer(modifier = Modifier.height(24.dp))
-
+        
         // App Title
         Text(
             text = "MoodFood",
@@ -85,9 +86,9 @@ fun LoginScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
-
+        
         Spacer(modifier = Modifier.height(40.dp))
-
+        
         // Login Form Card
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
@@ -107,7 +108,7 @@ fun LoginScreen(
                     imeAction = ImeAction.Next,
                     onImeAction = { focusManager.moveFocus(FocusDirection.Down) }
                 )
-
+                
                 // Password Field
                 AuthTextField(
                     value = password,
@@ -116,14 +117,14 @@ fun LoginScreen(
                     isPassword = true,
                     isError = uiState.errorMessage != null,
                     imeAction = ImeAction.Done,
-                    onImeAction = {
+                    onImeAction = { 
                         focusManager.clearFocus()
                         viewModel.signIn(email, password)
                     }
                 )
-
+                
                 Spacer(modifier = Modifier.height(8.dp))
-
+                
                 // Sign In Button
                 AuthButton(
                     text = "Sign In",
@@ -133,7 +134,7 @@ fun LoginScreen(
                 )
             }
         }
-
+        
         Spacer(modifier = Modifier.height(16.dp))
 
         // Error Message
