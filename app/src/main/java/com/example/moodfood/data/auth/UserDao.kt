@@ -49,4 +49,7 @@ interface UserSessionDao {
 
     @Query("DELETE FROM user_sessions WHERE expiresAt < :currentTime OR isActive = 0")
     suspend fun cleanupExpiredSessions(currentTime: Long = System.currentTimeMillis())
+    
+    @Query("SELECT * FROM user_sessions WHERE isActive = 1 AND expiresAt > :currentTime ORDER BY createdAt DESC LIMIT 1")
+    suspend fun getMostRecentActiveSession(currentTime: Long = System.currentTimeMillis()): UserSessionEntity?
 }

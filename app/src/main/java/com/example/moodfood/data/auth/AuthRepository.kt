@@ -3,15 +3,19 @@ package com.example.moodfood.data.auth
 import android.content.Context
 import android.util.Log
 import com.example.moodfood.data.db.AppDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.*
 
-class AuthRepository(private val context: Context) {
+class AuthRepository private constructor(private val context: Context) {
     private val userDao = AppDatabase.get(context).userDao()
     private val sessionDao = AppDatabase.get(context).userSessionDao()
     
@@ -20,6 +24,41 @@ class AuthRepository(private val context: Context) {
     
     private val _isAuthenticated = MutableStateFlow(false)
     val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
+    
+    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    
+    init {
+        repositoryScope.launch {
+            restoreSession()
+        }
+    }
+    
+    companion object {
+        @Volatile
+        private var INSTANCE: AuthRepository? = null
+        
+        fun get(context: Context): AuthRepository {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: AuthRepository(context.applicationContext).also { INSTANCE = it }
+            }
+        }
+    }
+    
+    private suspend fun restoreSession() {
+        try {
+            val session = sessionDao.getMostRecentActiveSession()
+            if (session != null) {
+                val user = userDao.getUserById(session.userId)
+                if (user != null) {
+                    _currentUser.value = user
+                    _isAuthenticated.value = true
+                    Log.d("AuthRepository", "Session restored for user: ${user.email}")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Failed to restore session", e)
+        }
+    }
 
     // Password hashing utilities
     private fun hashPassword(password: String, salt: String): String {
@@ -200,13 +239,19 @@ class AuthRepository(private val context: Context) {
             _currentUser.value?.let { user ->
                 sessionDao.deactivateAllUserSessions(user.id)
             }
+            
             _currentUser.value = null
             _isAuthenticated.value = false
+            
             Log.d("AuthRepository", "User logged out successfully")
         } catch (e: Exception) {
             Log.e("AuthRepository", "Logout failed", e)
+            throw e
         }
     }
+    
+    // Alias for signOut (used by ProfileViewModel)
+    suspend fun signOut() = logout()
 
     // Utility functions
     private fun isValidEmail(email: String): Boolean {
@@ -226,6 +271,11 @@ class AuthRepository(private val context: Context) {
 
     // Get current user info
     suspend fun getCurrentUser(): UserEntity? {
+        return _currentUser.value
+    }
+    
+    // Synchronous version for non-suspend contexts
+    fun getCurrentUserSync(): UserEntity? {
         return _currentUser.value
     }
 

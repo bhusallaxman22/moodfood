@@ -9,6 +9,7 @@ import com.example.moodfood.data.ai.OpenRouterClientFactory
 import com.example.moodfood.data.ai.SuggestionsRepository
 import com.example.moodfood.data.db.SuggestionEntity
 import com.example.moodfood.data.models.NutritionSuggestion
+import com.example.moodfood.data.progress.ProgressRepository
 import com.example.moodfood.navigation.NavRoute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,7 @@ import org.json.JSONObject
 
 object SuggestionCache {
     var currentSuggestion: NutritionSuggestion? = null
+    var currentSuggestionId: Long? = null
 }
 
 data class HomeUiState(
@@ -28,11 +30,11 @@ data class HomeUiState(
     val symptoms: List<String> = emptyList(),
     val loading: Boolean = false,
     val suggestion: NutritionSuggestion? = null,
-    val error: String? = null,
-    val recent: List<SuggestionEntity> = emptyList(),
+    val error: String? = null
 )
 
 class HomeViewModel(app: Application) : AndroidViewModel(app) {
+    private val progressRepository = ProgressRepository(app)
     private val _state = MutableStateFlow(HomeUiState())
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
 
@@ -54,18 +56,15 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 _state.value = s.copy(loading = true, error = null)
-                val suggestion = repo.getNutritionSuggestion(s.mood, s.goal.ifBlank { "feel better" })
-                SuggestionCache.currentSuggestion = suggestion // Cache the suggestion
-                Log.d("HomeViewModel", "Cached suggestion: ${suggestion.meal.name}")
+                val (suggestion, suggestionId) = repo.getNutritionSuggestion(s.mood, s.goal.ifBlank { "feel better" })
+                SuggestionCache.currentSuggestion = suggestion
+                SuggestionCache.currentSuggestionId = suggestionId
                 _state.value = _state.value.copy(loading = false, suggestion = suggestion)
+                
+                logMoodEntry(s.mood, s.goal, s.symptoms)
                 
                 // Automatically navigate to detail screen if navController is provided
                 navController?.navigate(NavRoute.SuggestionDetail.route)
-                
-                // update recent in background
-                repo.recent().stateIn(viewModelScope).value.let { list ->
-                    _state.value = _state.value.copy(recent = list)
-                }
             } catch (t: Throwable) {
                 val base = t.message ?: "Error"
                 val hint = if (base.contains("401")) " (check API key, model access, and referer)" else ""
@@ -73,19 +72,56 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
     }
+    
+    private fun logMoodEntry(mood: String, goal: String, symptoms: List<String>) {
+        viewModelScope.launch {
+            try {
+                val moodEmoji = when (mood.lowercase()) {
+                    "happy" -> "😊"
+                    "sad" -> "😔"
+                    "anxious" -> "😰"
+                    "stressed" -> "😫"
+                    "angry" -> "😠"
+                    "calm" -> "😌"
+                    "energetic" -> "😀"
+                    "tired" -> "😴"
+                    "content" -> "🙂"
+                    else -> "😐"
+                }
+                
+                // Calculate mood score based on typical positive/negative moods
+                val moodScore = when (mood.lowercase()) {
+                    "happy", "energetic", "content" -> 0.9f
+                    "calm" -> 0.7f
+                    "tired" -> 0.4f
+                    "anxious", "stressed" -> 0.3f
+                    "sad", "angry" -> 0.2f
+                    else -> 0.5f
+                }
+                
+                progressRepository.logMoodEntry(
+                    mood = mood,
+                    moodEmoji = moodEmoji,
+                    goalMood = goal.takeIf { it.isNotBlank() },
+                    symptoms = symptoms,
+                    moodScore = moodScore
+                )
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "Failed to log mood entry: ${e.message}")
+            }
+        }
+    }
 
     fun loadRecentSuggestion(entity: SuggestionEntity, navController: NavController) {
         try {
-            // Parse the stored JSON back to NutritionSuggestion
             val repo = SuggestionsRepository(
                 OpenRouterClientFactory.create(BuildConfig.OPENROUTER_API_KEY),
                 getApplication()
             )
             val suggestion = repo.parseNutritionSuggestion(entity.json)
             
-            // Cache it and navigate
             SuggestionCache.currentSuggestion = suggestion
-            Log.d("HomeViewModel", "Loaded recent suggestion: ${suggestion.meal.name}")
+            SuggestionCache.currentSuggestionId = entity.id
             navController.navigate(NavRoute.SuggestionDetail.route)
         } catch (e: Exception) {
             Log.e("HomeViewModel", "Failed to load recent suggestion: ${e.message}")
