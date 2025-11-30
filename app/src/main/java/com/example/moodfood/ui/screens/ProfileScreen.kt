@@ -136,7 +136,7 @@ fun ProfileScreen(
                     icon = "🛡️",
                     title = "Privacy Settings",
                     subtitle = "Control your data",
-                    onClick = { /* TODO: Privacy settings */ }
+                    onClick = { navController?.navigate(com.example.moodfood.navigation.NavRoute.PrivacySettings.route) }
                 )
                 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
