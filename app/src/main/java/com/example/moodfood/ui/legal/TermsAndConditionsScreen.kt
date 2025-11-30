@@ -266,7 +266,7 @@ fun TermsAndConditionsScreen(navController: NavController) {
                     
                     Email: support@moodfood.com
                     Address: 3991 Main Isle Rd, Arlington, TX
-                    Phone: +1 (831)-(2222333)
+                    Phone: +1 (831) 222-2333
                     
                     We will respond to inquiries within 7-10 business days.
                 """

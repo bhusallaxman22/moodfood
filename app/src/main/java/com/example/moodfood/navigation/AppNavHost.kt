@@ -20,6 +20,7 @@ import com.example.moodfood.ui.onboarding.TutorialScreen
 import com.example.moodfood.ui.screens.*
 import com.example.moodfood.ui.suggestion.SuggestionDetailScreen
 import com.example.moodfood.ui.legal.TermsAndConditionsScreen
+import com.example.moodfood.ui.legal.HelpAndSupportScreen
 
 @Composable
 fun AppNavHost(
@@ -112,6 +113,9 @@ fun AppNavHost(
             }
             composable(NavRoute.TermsAndConditions.route) {
                 TermsAndConditionsScreen(navController = navController)
+            }
+            composable(NavRoute.HelpAndSupport.route) {
+                HelpAndSupportScreen(navController = navController)
             }
         }
     }

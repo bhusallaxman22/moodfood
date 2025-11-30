@@ -145,7 +145,7 @@ fun ProfileScreen(
                     icon = "❓",
                     title = "Help & Support",
                     subtitle = "Get help",
-                    onClick = { /* TODO: Help */ }
+                    onClick = { navController?.navigate(com.example.moodfood.navigation.NavRoute.HelpAndSupport.route) }
                 )
                 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
