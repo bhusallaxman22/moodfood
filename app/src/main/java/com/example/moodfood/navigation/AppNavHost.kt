@@ -22,6 +22,7 @@ import com.example.moodfood.ui.suggestion.SuggestionDetailScreen
 import com.example.moodfood.ui.legal.TermsAndConditionsScreen
 import com.example.moodfood.ui.legal.HelpAndSupportScreen
 import com.example.moodfood.ui.legal.PrivacySettingsScreen
+import com.example.moodfood.ui.profile.ChangePasswordScreen
 
 @Composable
 fun AppNavHost(
@@ -120,6 +121,9 @@ fun AppNavHost(
             }
             composable(NavRoute.PrivacySettings.route) {
                 PrivacySettingsScreen(navController = navController)
+            }
+            composable(NavRoute.ChangePassword.route) {
+                ChangePasswordScreen(navController = navController)
             }
         }
     }

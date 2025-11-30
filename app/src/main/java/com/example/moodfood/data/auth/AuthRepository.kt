@@ -305,6 +305,42 @@ class AuthRepository private constructor(private val context: Context) {
         }
     }
 
+    // Change password for currently authenticated email/password users
+    suspend fun changePassword(currentPassword: String, newPassword: String): AuthResult {
+        try {
+            val currentUser = _currentUser.value ?: return AuthResult.Error("Not authenticated")
+            if (currentUser.authProvider != AuthProvider.EMAIL_PASSWORD) {
+                return AuthResult.Error("Password change not supported for this account type")
+            }
+
+            val storedHash = currentUser.passwordHash ?: return AuthResult.Error("No password set for this account")
+            val (hash, salt) = storedHash.split(":").let { it[0] to it[1] }
+            val inputHash = hashPassword(currentPassword, salt)
+
+            if (hash != inputHash) {
+                return AuthResult.Error("Current password incorrect")
+            }
+
+            if (newPassword.length < 6) {
+                return AuthResult.Error("New password must be at least 6 characters")
+            }
+
+            val newSalt = generateSalt()
+            val newHash = hashPassword(newPassword, newSalt)
+
+            val updatedUser = currentUser.copy(passwordHash = "$newHash:$newSalt")
+            userDao.updateUser(updatedUser)
+            _currentUser.value = updatedUser
+
+            Log.d("AuthRepository", "Password changed for user: ${currentUser.email}")
+            return AuthResult.Success(updatedUser)
+
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Password change failed", e)
+            return AuthResult.Error("Password change failed: ${e.message}")
+        }
+    }
+
     // Cleanup expired sessions
     suspend fun cleanupSessions() {
         try {

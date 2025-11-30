@@ -110,7 +110,7 @@ fun ProfileScreen(
                     icon = "🔒",
                     title = "Change Password",
                     subtitle = "Update your security",
-                    onClick = { /* TODO: Navigate to change password */ }
+                    onClick = { navController?.navigate(com.example.moodfood.navigation.NavRoute.ChangePassword.route) }
                 )
             }
         }
