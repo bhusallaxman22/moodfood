@@ -4,9 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,9 +22,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MoodFoodTheme {
-                val repo = SettingsRepository(this)
-                val done by repo.onboardingDone.collectAsState(initial = false)
+            // 1. Initialize the repository and state directly here
+            val repo = SettingsRepository(this@MainActivity)
+            val done by repo.onboardingDone.collectAsState(initial = false)
+            val darkModeEnabled by repo.darkModeEnabled.collectAsState(initial = false)
+
+            // 2. Use the standard MoodFoodTheme (which is imported)
+            // Pass the repository value to the darkTheme parameter
+            MoodFoodTheme(
+                darkTheme = darkModeEnabled
+            ) {
                 val start = if (done) NavRoute.Home.route else NavRoute.Onboarding.route
                 AppNavHost(
                     startDestination = start,

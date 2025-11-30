@@ -56,3 +56,18 @@ fun MoodFoodTheme(
         content = content
     )
 }
+
+@Composable
+fun MoodFoodThemeWithDarkMode(
+    darkThemeOverride: Boolean?,
+    dynamicColor: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val systemDarkTheme = isSystemInDarkTheme()
+    val darkTheme = darkThemeOverride ?: systemDarkTheme
+    MoodFoodTheme(
+        darkTheme = darkTheme,
+        dynamicColor = dynamicColor,
+        content = content
+    )
+}

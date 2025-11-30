@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.moodfood.data.auth.AuthRepository
 import com.example.moodfood.data.progress.ProgressRepository
 import com.example.moodfood.data.progress.UserPreferences
+import com.example.moodfood.data.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +25,7 @@ data class ProfileUiState(
 class ProfileViewModel(app: Application) : AndroidViewModel(app) {
     private val progressRepository = ProgressRepository(app)
     private val authRepository = AuthRepository.get(app)
+    private val settingsRepository = SettingsRepository(app)
     
     private val _state = MutableStateFlow(ProfileUiState())
     val state: StateFlow<ProfileUiState> = _state.asStateFlow()
@@ -46,12 +48,16 @@ class ProfileViewModel(app: Application) : AndroidViewModel(app) {
                     )
                 }
                 
+                // Get dark mode setting
+                settingsRepository.darkModeEnabled.collect { darkMode ->
+                    _state.value = _state.value.copy(darkModeEnabled = darkMode)
+                }
+                
                 // Get user preferences
                 progressRepository.getUserPreferences().collect { preferences ->
                     if (preferences != null) {
                         _state.value = _state.value.copy(
                             notificationsEnabled = preferences.notificationsEnabled,
-                            darkModeEnabled = preferences.darkModeEnabled,
                             isLoading = false
                         )
                     } else {
@@ -102,16 +108,12 @@ class ProfileViewModel(app: Application) : AndroidViewModel(app) {
     fun toggleDarkMode() {
         viewModelScope.launch {
             try {
-                val user = authRepository.getCurrentUser() ?: return@launch
                 val newValue = !_state.value.darkModeEnabled
                 
-                val preferences = UserPreferences(
-                    userId = user.id,
-                    notificationsEnabled = _state.value.notificationsEnabled,
-                    darkModeEnabled = newValue
-                )
+                // Persist to DataStore
+                settingsRepository.setDarkModeEnabled(newValue)
                 
-                progressRepository.updatePreferences(preferences)
+                // Update UI state
                 _state.value = _state.value.copy(darkModeEnabled = newValue)
                 
                 Log.d("ProfileViewModel", "Dark mode toggled: $newValue")

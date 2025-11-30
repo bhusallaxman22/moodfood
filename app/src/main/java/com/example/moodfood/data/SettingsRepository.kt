@@ -15,15 +15,26 @@ val Context.dataStore by preferencesDataStore(DATASTORE_NAME)
 class SettingsRepository(private val context: Context) {
     private object Keys {
         val OnboardingDone = booleanPreferencesKey("onboarding_done")
+        val DarkModeEnabled = booleanPreferencesKey("dark_mode_enabled")
     }
 
     val onboardingDone: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[Keys.OnboardingDone] ?: false
     }
 
+    val darkModeEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[Keys.DarkModeEnabled] ?: false
+    }
+
     suspend fun setOnboardingDone(value: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[Keys.OnboardingDone] = value
+        }
+    }
+
+    suspend fun setDarkModeEnabled(value: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.DarkModeEnabled] = value
         }
     }
 }
