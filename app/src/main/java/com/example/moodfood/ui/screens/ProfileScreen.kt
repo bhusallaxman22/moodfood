@@ -154,7 +154,7 @@ fun ProfileScreen(
                     icon = "📄",
                     title = "Terms & Conditions",
                     subtitle = "Read our terms",
-                    onClick = { /* TODO: Terms */ }
+                    onClick = { navController?.navigate(com.example.moodfood.navigation.NavRoute.TermsAndConditions.route) }
                 )
             }
         }

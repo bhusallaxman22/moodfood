@@ -12,4 +12,5 @@ sealed class NavRoute(val route: String) {
     data object Trends : NavRoute("trends")
     data object Mindfulness : NavRoute("mindfulness")
     data object Profile : NavRoute("profile")
+    data object TermsAndConditions : NavRoute("terms_and_conditions")
 }
