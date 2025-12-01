@@ -31,8 +31,11 @@ class AuthInterceptor(private val apiKey: String) : Interceptor {
 
 object OpenRouterClientFactory {
     fun create(apiKey: String): OpenRouterService {
+        Log.d("OpenRouterFactory", "Creating client with API key length: ${apiKey.length}")
+        Log.d("OpenRouterFactory", "API key starts with: ${apiKey.take(20)}")
+        
         val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.HEADERS
+            level = HttpLoggingInterceptor.Level.BODY // Changed to BODY to see full request/response
             redactHeader("Authorization")
         }
         val http = OkHttpClient.Builder()
