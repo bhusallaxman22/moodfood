@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
@@ -15,6 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.moodfood.ui.progress.UserStatsViewModel
+import com.example.moodfood.ui.components.MoodIcons
+import com.example.moodfood.ui.components.StatItemWithIcon
+import com.example.moodfood.ui.components.SectionHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,18 +88,23 @@ fun ProgressScreen(viewModel: UserStatsViewModel = viewModel()) {
             } else {
                 userStats?.let { stats ->
                 // Header Card
-                ElevatedCard(
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
                     Column(
                         modifier = Modifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text = "📊",
-                            fontSize = 56.sp
+                        Icon(
+                            imageVector = MoodIcons.Section.Stats,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(64.dp)
                         )
                         
                         Text(
@@ -114,28 +124,29 @@ fun ProgressScreen(viewModel: UserStatsViewModel = viewModel()) {
                 }
                 
                 // Stats Overview
-                ElevatedCard(
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text(
-                            text = "📈 Overview",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold
-                            )
+                        SectionHeader(
+                            title = "Overview",
+                            icon = MoodIcons.Section.Trends
                         )
                         
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            StatItem("🔥", stats.currentStreak.toString(), "Day Streak")
-                            StatItem("📝", stats.totalSessions.toString(), "Sessions")
-                            StatItem("😊", stats.averageMood, "Avg Mood")
+                            StatItemWithIcon(Icons.Filled.LocalFireDepartment, stats.currentStreak.toString(), "Day Streak")
+                            StatItemWithIcon(Icons.Filled.FormatListBulleted, stats.totalSessions.toString(), "Sessions")
+                            StatItemWithIcon(MoodIcons.Section.Mood, stats.averageMood, "Avg Mood")
                         }
                         
                         HorizontalDivider()
@@ -144,28 +155,29 @@ fun ProgressScreen(viewModel: UserStatsViewModel = viewModel()) {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            StatItem("🍽️", stats.mealsTracked.toString(), "Meals")
-                            StatItem("✨", stats.goodDays.toString(), "Good Days")
-                            StatItem("🎯", stats.goalsMet.toString(), "Goals Met")
+                            StatItemWithIcon(MoodIcons.Section.Food, stats.mealsTracked.toString(), "Meals")
+                            StatItemWithIcon(Icons.Filled.Star, stats.goodDays.toString(), "Good Days")
+                            StatItemWithIcon(MoodIcons.Section.Target, stats.goalsMet.toString(), "Goals Met")
                         }
                     }
                 }
                 
                 // Weekly Progress
                 if (stats.weeklyProgress.isNotEmpty()) {
-                    ElevatedCard(
+                    Card(
                         modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                     ) {
                         Column(
                             modifier = Modifier.padding(20.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text(
-                                text = "📅 This Week",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Bold
-                                )
+                            SectionHeader(
+                                title = "This Week",
+                                icon = Icons.Filled.CalendarToday
                             )
                             
                             stats.weeklyProgress.forEach { day ->
@@ -180,19 +192,20 @@ fun ProgressScreen(viewModel: UserStatsViewModel = viewModel()) {
                 
                 // Mood History
                 if (stats.recentMoods.isNotEmpty()) {
-                    ElevatedCard(
+                    Card(
                         modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                     ) {
                         Column(
                             modifier = Modifier.padding(20.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text(
-                                text = "😊 Recent Moods",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Bold
-                                )
+                            SectionHeader(
+                                title = "Recent Moods",
+                                icon = MoodIcons.Section.Mood
                             )
                             
                             stats.recentMoods.forEach { mood ->
@@ -208,19 +221,20 @@ fun ProgressScreen(viewModel: UserStatsViewModel = viewModel()) {
                 
                 // Achievements
                 if (stats.achievements.isNotEmpty()) {
-                    ElevatedCard(
+                    Card(
                         modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                     ) {
                         Column(
                             modifier = Modifier.padding(20.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text(
-                                text = "🏆 Achievements",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Bold
-                                )
+                            SectionHeader(
+                                title = "Achievements",
+                                icon = MoodIcons.Section.Achievements
                             )
                             
                             stats.achievements.forEach { achievement ->
