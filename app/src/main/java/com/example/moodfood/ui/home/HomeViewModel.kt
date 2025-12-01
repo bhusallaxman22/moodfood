@@ -43,7 +43,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     fun setSymptoms(list: List<String>) { _state.value = _state.value.copy(symptoms = list) }
 
     fun getSuggestion(navController: NavController? = null) {
-        val apiKey = "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" // REPLACE WITH VALID API KEY FOR TESTING
+        val apiKey = "" // REPLACE WITH VALID API KEY FOR TESTING
         Log.d("OpenRouter", "API key from BuildConfig: length=${apiKey.length}, value='${apiKey.take(20)}...'")
         if (apiKey.isBlank()) {
             _state.value = _state.value.copy(error = "Missing OpenRouter API key", loading = false)
