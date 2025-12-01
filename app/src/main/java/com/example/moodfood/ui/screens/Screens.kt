@@ -586,11 +586,6 @@ fun TrendsScreen() {
 }
 
 @Composable
-fun MindfulnessScreen() {
-    CenterText("Mindfulness")
-}
-
-@Composable
 private fun ProfileMenuItem(
     icon: String,
     title: String,

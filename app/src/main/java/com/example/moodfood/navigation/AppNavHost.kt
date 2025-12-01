@@ -24,6 +24,7 @@ import com.example.moodfood.ui.legal.HelpAndSupportScreen
 import com.example.moodfood.ui.legal.PrivacySettingsScreen
 import com.example.moodfood.ui.profile.ChangePasswordScreen
 import com.example.moodfood.ui.trends.TrendsScreen
+import com.example.moodfood.ui.mindfulness.MindfulnessScreen
 
 @Composable
 fun AppNavHost(
