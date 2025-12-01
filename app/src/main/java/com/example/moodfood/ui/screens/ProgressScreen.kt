@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,28 +16,72 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.moodfood.ui.progress.UserStatsViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProgressScreen(viewModel: UserStatsViewModel = viewModel()) {
     val userStats by viewModel.userStats.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val error by viewModel.error.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(20.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+    // Show error message if present
+    error?.let { errorMessage ->
+        LaunchedEffect(errorMessage) {
+            // Auto-dismiss error after 3 seconds
+            kotlinx.coroutines.delay(3000)
+            viewModel.clearError()
+        }
+    }
+
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = { viewModel.refreshStats() },
+        modifier = Modifier.fillMaxSize()
     ) {
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(20.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            // Error Snackbar
+            error?.let { errorMessage ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("⚠️", fontSize = 20.sp)
+                        Text(
+                            text = errorMessage,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.weight(1f)
+                        )
+                        TextButton(onClick = { viewModel.clearError() }) {
+                            Text("Dismiss")
+                        }
+                    }
+                }
             }
-        } else {
-            userStats?.let { stats ->
+
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                userStats?.let { stats ->
                 // Header Card
                 ElevatedCard(
                     modifier = Modifier.fillMaxWidth(),
@@ -222,7 +267,8 @@ fun ProgressScreen(viewModel: UserStatsViewModel = viewModel()) {
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(80.dp))
+                    Spacer(modifier = Modifier.height(80.dp))
+                }
             }
         }
     }
