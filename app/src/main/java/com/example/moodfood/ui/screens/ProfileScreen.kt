@@ -112,6 +112,15 @@ fun ProfileScreen(
                     subtitle = "Update your security",
                     onClick = { navController?.navigate(com.example.moodfood.navigation.NavRoute.ChangePassword.route) }
                 )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
+                ProfileMenuItemNew(
+                    icon = "🍽️",
+                    title = "Food Preferences",
+                    subtitle = "Dietary restrictions & preferences",
+                    onClick = { navController?.navigate(com.example.moodfood.navigation.NavRoute.FoodPreferences.route) }
+                )
             }
         }
         

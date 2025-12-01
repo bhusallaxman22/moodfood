@@ -1,9 +1,14 @@
 package com.example.moodfood.prompt
 
 object Prompts {
-    const val SYSTEM_PROMPT = """You are MoodFood AI. Analyze the user's mood, symptoms, and goal, then suggest exactly 3 foods from the provided list.
+    const val SYSTEM_PROMPT = """You are MoodFood AI. Analyze the user's mood, symptoms, goal, and dietary preferences, then suggest exactly 3 foods from the provided list.
 
-CRITICAL: Respond with ONLY a JSON object in this exact format:
+CRITICAL RULES:
+1. NEVER suggest foods the user is allergic to or has dietary restrictions against
+2. Respect the user's food preferences (spice level, complexity, cuisine, budget)
+3. Avoid foods the user dislikes
+4. Respond with ONLY a JSON object in this exact format:
+
 {
   "items": [
     {
@@ -19,12 +24,45 @@ CRITICAL: Respond with ONLY a JSON object in this exact format:
 
 No explanation, no markdown, no extra text. Just pure JSON."""
 
-    fun suggestionPrompt(mood: String, goalMood: String?, symptoms: List<String>, foods: List<Food>): String {
+    fun suggestionPrompt(
+        mood: String, 
+        goalMood: String?, 
+        symptoms: List<String>, 
+        foods: List<Food>,
+        dietaryRestrictions: List<String> = emptyList(),
+        allergies: List<String> = emptyList(),
+        dislikedFoods: List<String> = emptyList(),
+        preferredCuisines: List<String> = emptyList(),
+        spiceLevel: String = "medium",
+        mealComplexity: String = "medium",
+        budget: String = "medium"
+    ): String {
         val foodDb = foods.joinToString(separator = "\n") { f ->
             "- ${f.name}: moods=${f.moods.joinToString()}, nutrients=${f.nutrients.joinToString()}, compounds=${f.compounds.joinToString()}"
         }
         val sym = if (symptoms.isEmpty()) "none" else symptoms.joinToString()
         val goal = goalMood ?: "not specified"
+        
+        val preferencesSection = buildString {
+            if (dietaryRestrictions.isNotEmpty()) {
+                append("\n- dietary restrictions: ${dietaryRestrictions.joinToString()}")
+                append(" (MUST AVOID these)")
+            }
+            if (allergies.isNotEmpty()) {
+                append("\n- allergies: ${allergies.joinToString()}")
+                append(" (NEVER suggest these - CRITICAL)")
+            }
+            if (dislikedFoods.isNotEmpty()) {
+                append("\n- dislikes: ${dislikedFoods.joinToString()}")
+            }
+            if (preferredCuisines.isNotEmpty()) {
+                append("\n- preferred cuisines: ${preferredCuisines.joinToString()}")
+            }
+            append("\n- spice level: $spiceLevel")
+            append("\n- meal complexity: $mealComplexity")
+            append("\n- budget: $budget")
+        }
+        
         return """
             Context food-db:
             $foodDb
@@ -34,8 +72,16 @@ No explanation, no markdown, no extra text. Just pure JSON."""
             - symptoms: $sym
             - goal mood: $goal
 
+            User preferences:$preferencesSection
+
             Task:
-            Suggest the top 3 foods from the food-db that best improve the user's state. Output JSON only using the schema from the system prompt.
+            Suggest the top 3 foods from the food-db that:
+            1. Best improve the user's mood state
+            2. Strictly respect dietary restrictions and allergies
+            3. Match the user's preferences (spice, complexity, cuisine)
+            4. Avoid disliked foods when possible
+            
+            Output JSON only using the schema from the system prompt.
         """.trimIndent()
     }
 }

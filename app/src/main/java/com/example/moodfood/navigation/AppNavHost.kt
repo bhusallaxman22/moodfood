@@ -25,6 +25,7 @@ import com.example.moodfood.ui.legal.PrivacySettingsScreen
 import com.example.moodfood.ui.profile.ChangePasswordScreen
 import com.example.moodfood.ui.trends.TrendsScreen
 import com.example.moodfood.ui.mindfulness.MindfulnessScreen
+import com.example.moodfood.ui.preferences.FoodPreferencesScreen
 
 @Composable
 fun AppNavHost(
@@ -126,6 +127,23 @@ fun AppNavHost(
             }
             composable(NavRoute.ChangePassword.route) {
                 ChangePasswordScreen(navController = navController)
+            }
+            composable(NavRoute.FoodPreferences.route) {
+                FoodPreferencesScreen(
+                    navController = navController,
+                    isFirstTimeSetup = false
+                )
+            }
+            composable(NavRoute.FoodPreferencesSetup.route) {
+                FoodPreferencesScreen(
+                    isFirstTimeSetup = true,
+                    onSetupComplete = {
+                        navController.navigate(NavRoute.Home.route) {
+                            popUpTo(0)
+                            launchSingleTop = true
+                        }
+                    }
+                )
             }
         }
     }
