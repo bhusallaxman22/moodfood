@@ -53,6 +53,12 @@ class UserStatsViewModel(app: Application) : AndroidViewModel(app) {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
     init {
         // Automatically load stats when ViewModel is created
         loadUserStats()
@@ -62,6 +68,7 @@ class UserStatsViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
+                _error.value = null
 
                 // Collect real-time data from repository
                 combine(
@@ -96,13 +103,18 @@ class UserStatsViewModel(app: Application) : AndroidViewModel(app) {
                     }
                     
                     // Transform achievements to display data
-                    val achievementsList = achievements.map { achievement ->
-                        Achievement(
-                            emoji = achievement.icon,
-                            title = achievement.title,
-                            description = achievement.description,
-                            isUnlocked = achievement.isUnlocked
-                        )
+                    val achievementsList = if (achievements.isEmpty()) {
+                        // Provide default achievements for new users
+                        getDefaultAchievements()
+                    } else {
+                        achievements.map { achievement ->
+                            Achievement(
+                                emoji = achievement.icon,
+                                title = achievement.title,
+                                description = achievement.description,
+                                isUnlocked = achievement.isUnlocked
+                            )
+                        }
                     }
                     
                     // Transform weekly progress
@@ -124,15 +136,47 @@ class UserStatsViewModel(app: Application) : AndroidViewModel(app) {
                 }.collect { stats ->
                     _userStats.value = stats
                     _isLoading.value = false
+                    _isRefreshing.value = false
                 }
 
             } catch (e: Exception) {
                 Log.e("UserStatsViewModel", "Failed to load user stats: ${e.message}", e)
                 _isLoading.value = false
+                _isRefreshing.value = false
+                _error.value = "Failed to load progress data: ${e.message}"
                 
                 // Show empty stats on error
                 _userStats.value = UserStats()
             }
         }
+    }
+
+    fun refreshStats() {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                _error.value = null
+                
+                // Reload all stats
+                loadUserStats()
+            } catch (e: Exception) {
+                Log.e("UserStatsViewModel", "Failed to refresh stats: ${e.message}", e)
+                _isRefreshing.value = false
+                _error.value = "Failed to refresh data: ${e.message}"
+            }
+        }
+    }
+
+    fun clearError() {
+        _error.value = null
+    }
+
+    private fun getDefaultAchievements(): List<Achievement> {
+        return listOf(
+            Achievement("🥇", "Getting Started", "Complete your first mood entry", false),
+            Achievement("🔥", "Building Habits", "Keep tracking to unlock more achievements", false),
+            Achievement("🥗", "Nutrition Aware", "Start logging your meals", false),
+            Achievement("😊", "Mood Tracker", "Continue your wellness journey", false)
+        )
     }
 }

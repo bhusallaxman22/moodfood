@@ -37,9 +37,9 @@ abstract class AppDatabase : RoomDatabase() {
                 AppDatabase::class.java,
                 "moodfood.db"
             )
-                .fallbackToDestructiveMigration() // Allow destructive migration during development
-                .build()
-                .also { INSTANCE = it }
+            .fallbackToDestructiveMigration() // Allow destructive migration during development
+            .build()
+            .also { INSTANCE = it }
         }
     }
 }

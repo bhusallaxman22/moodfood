@@ -65,6 +65,13 @@ class ProgressRepository(private val context: Context) {
         return progressDao.getRecentMoodEntries(userId, limit)
     }
     
+    fun getMoodEntriesSince(startDate: String): Flow<List<MoodEntry>> {
+        val userId = runCatching { 
+            authRepository.getCurrentUserSync()?.id 
+        }.getOrNull() ?: 0
+        return progressDao.getMoodEntriesSince(userId, startDate)
+    }
+    
     suspend fun getTotalSessions(): Int {
         val user = authRepository.getCurrentUser() ?: return 0
         return progressDao.getTotalMoodEntries(user.id)

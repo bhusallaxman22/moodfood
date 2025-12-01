@@ -3,6 +3,7 @@ package com.example.moodfood.ui.screens
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.border
+import androidx.compose.foundation.border
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -31,7 +33,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -93,7 +94,7 @@ fun HomeScreen(navController: NavController) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-
+        
         // Current Mood Card
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
@@ -120,7 +121,7 @@ fun HomeScreen(navController: NavController) {
                 EmojiChips(items = moods, selected = state.mood, onSelect = vm::setMood)
             }
         }
-
+        
         // Goal Mood Card
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
@@ -147,7 +148,7 @@ fun HomeScreen(navController: NavController) {
                 EmojiChips(items = positiveMoods, selected = state.goal, onSelect = vm::setGoal)
             }
         }
-
+        
         // Advanced Options
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -167,7 +168,7 @@ fun HomeScreen(navController: NavController) {
                         )
                     }
                 }
-
+                
                 if (showAdvanced) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -189,7 +190,7 @@ fun HomeScreen(navController: NavController) {
                 }
             }
         }
-
+        
         // Get Suggestion Button
         Button(
             onClick = { vm.getSuggestion(navController) },
@@ -206,15 +207,15 @@ fun HomeScreen(navController: NavController) {
                 style = MaterialTheme.typography.titleMedium
             )
         }
-
+        
         if (state.loading) {
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.primary
             )
         }
-
-        state.error?.let {
+        
+        state.error?.let { 
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -230,8 +231,8 @@ fun HomeScreen(navController: NavController) {
             }
         }
         
-        // Add bottom spacing for nav bar
-        Spacer(modifier = Modifier.height(80.dp))
+        // Recent Suggestions - Disabled (recent property not in HomeUiState)
+        // TODO: Add recent suggestions feature
     }
 }
 
@@ -247,7 +248,7 @@ private fun SymptomChips(all: List<String>, selected: Set<String>, onToggle: (St
             FilterChip(
                 selected = chosen,
                 onClick = { onToggle(tag) },
-                label = {
+                label = { 
                     Text(
                         text = tag,
                         style = MaterialTheme.typography.bodyMedium
@@ -281,7 +282,7 @@ private fun EmojiChips(items: List<String>, selected: String, onSelect: (String)
             val chosen = label == selected
             val emoji = label.split(" ").firstOrNull() ?: ""
             val text = label.substringAfter(" ").trim()
-
+            
             ElevatedCard(
                 onClick = { onSelect(label) },
                 modifier = Modifier
@@ -297,9 +298,9 @@ private fun EmojiChips(items: List<String>, selected: String, onSelect: (String)
                     defaultElevation = if (chosen) 8.dp else 2.dp
                 ),
                 colors = CardDefaults.elevatedCardColors(
-                    containerColor = if (chosen)
-                        MaterialTheme.colorScheme.primaryContainer
-                    else
+                    containerColor = if (chosen) 
+                        MaterialTheme.colorScheme.primaryContainer 
+                    else 
                         MaterialTheme.colorScheme.surface
                 )
             ) {
@@ -318,9 +319,9 @@ private fun EmojiChips(items: List<String>, selected: String, onSelect: (String)
                         text = text,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = if (chosen) FontWeight.Bold else FontWeight.Normal,
-                        color = if (chosen)
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        else
+                        color = if (chosen) 
+                            MaterialTheme.colorScheme.onPrimaryContainer 
+                        else 
                             MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -396,7 +397,7 @@ private fun RecentSuggestionCard(
 ) {
     val dateFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
     val date = dateFormat.format(Date(entity.timestamp))
-
+    
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -431,7 +432,7 @@ private fun RecentSuggestionCard(
                     )
                 }
             }
-
+            
             // Content Section
             Column(
                 modifier = Modifier.weight(1f),

@@ -13,6 +13,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
 import com.example.moodfood.data.auth.AuthRepository
@@ -66,9 +67,9 @@ fun SignupScreen(
                 )
             }
         }
-
+        
         Spacer(modifier = Modifier.height(24.dp))
-
+        
         // Title
         Text(
             text = "Create Account",
@@ -87,7 +88,7 @@ fun SignupScreen(
         )
 
         Spacer(modifier = Modifier.height(32.dp))
-
+        
         // Signup Form Card
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
@@ -107,7 +108,7 @@ fun SignupScreen(
                     imeAction = ImeAction.Next,
                     onImeAction = { focusManager.moveFocus(FocusDirection.Down) }
                 )
-
+                
                 // Password Field
                 AuthTextField(
                     value = password,
@@ -118,7 +119,7 @@ fun SignupScreen(
                     imeAction = ImeAction.Next,
                     onImeAction = { focusManager.moveFocus(FocusDirection.Down) }
                 )
-
+                
                 // Confirm Password Field
                 AuthTextField(
                     value = confirmPassword,
@@ -127,14 +128,14 @@ fun SignupScreen(
                     isPassword = true,
                     isError = uiState.errorMessage != null,
                     imeAction = ImeAction.Done,
-                    onImeAction = {
+                    onImeAction = { 
                         focusManager.clearFocus()
                         viewModel.signUp(email, password, confirmPassword)
                     }
                 )
-
+                
                 Spacer(modifier = Modifier.height(8.dp))
-
+                
                 // Sign Up Button
                 AuthButton(
                     text = "Create Account",
@@ -144,7 +145,7 @@ fun SignupScreen(
                 )
             }
         }
-
+        
         Spacer(modifier = Modifier.height(16.dp))
 
         // Error Message
