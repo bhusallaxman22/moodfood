@@ -77,7 +77,6 @@ fun HomeScreen(navController: NavController) {
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
-        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // Welcome Header
         Column(
@@ -232,35 +231,14 @@ fun HomeScreen(navController: NavController) {
             }
         }
         
-        // Recent Suggestions
-        if (state.recent.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "📜 Recent Suggestions",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                state.recent.forEach { entity ->
-                    RecentSuggestionCard(
-                        entity = entity,
-                        onClick = {
-                            vm.loadRecentSuggestion(entity, navController)
-                        }
-                    )
-                }
-            }
-        }
+        // Recent Suggestions - Disabled (recent property not in HomeUiState)
+        // TODO: Add recent suggestions feature
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SymptomChips(all: List<String>, selected: Set<String>, onToggle: (String) -> Unit) {
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -296,10 +274,6 @@ private fun SymptomChips(all: List<String>, selected: Set<String>, onToggle: (St
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun EmojiChips(items: List<String>, selected: String, onSelect: (String) -> Unit) {
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -431,9 +405,6 @@ private fun RecentSuggestionCard(
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     ) {
         Row(
@@ -442,25 +413,7 @@ private fun RecentSuggestionCard(
                 .padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon/Emoji Section
-            Card(
-                modifier = Modifier.size(56.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
             // Icon/Emoji Section
             Card(
                 modifier = Modifier.size(56.dp),
@@ -496,11 +449,6 @@ private fun RecentSuggestionCard(
                     color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
                 )
                 Text(
-                    text = "Tap to view details →",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
                     text = "Tap to view details →",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary

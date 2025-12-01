@@ -23,6 +23,7 @@ import com.example.moodfood.ui.legal.TermsAndConditionsScreen
 import com.example.moodfood.ui.legal.HelpAndSupportScreen
 import com.example.moodfood.ui.legal.PrivacySettingsScreen
 import com.example.moodfood.ui.profile.ChangePasswordScreen
+import com.example.moodfood.ui.trends.TrendsScreen
 
 @Composable
 fun AppNavHost(
