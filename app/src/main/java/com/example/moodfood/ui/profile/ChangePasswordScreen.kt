@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 fun ChangePasswordScreen(navController: NavController) {
     val context = LocalContext.current
     val authRepo = AuthRepository.get(context)
-    val currentUserState by authRepo.currentUser.collectAsState()
+    val currentUserState by authRepo.currentUser.collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
 
     var currentPassword by remember { mutableStateOf("") }
