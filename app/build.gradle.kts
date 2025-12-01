@@ -20,23 +20,33 @@ android {
     }
 
     buildTypes {
-    var apiKey = ((project.findProperty("OPENROUTER_API_KEY") as String?) ?: "").trim()
-    var model = ((project.findProperty("OPENROUTER_MODEL") as String?) ?: "deepseek/deepseek-chat-v3.1").trim()
-    var referer = ((project.findProperty("OPENROUTER_REFERER") as String?) ?: "https://moodfood.app").trim()
+        // Load credentials from .env file
+        var apiKey = ((project.findProperty("OPENROUTER_API_KEY") as String?) ?: "").trim()
+        var model = ((project.findProperty("OPENROUTER_MODEL") as String?) ?: "deepseek/deepseek-chat-v3.1").trim()
+        var referer = ((project.findProperty("OPENROUTER_REFERER") as String?) ?: "https://moodfood.app").trim()
+        
+        // If not found in gradle.properties, try .env file
         if (apiKey.isEmpty()) {
             val envFile = rootProject.file(".env")
             if (envFile.exists()) {
-        val lines = envFile.readLines()
-        apiKey = (lines.firstOrNull { it.startsWith("OPENROUTER_API_KEY=") }?.substringAfter('=') ?: "").trim()
-        model = (lines.firstOrNull { it.startsWith("OPENROUTER_MODEL=") }?.substringAfter('=') ?: model).trim()
-        referer = (lines.firstOrNull { it.startsWith("OPENROUTER_REFERER=") }?.substringAfter('=') ?: referer).trim()
+                val lines = envFile.readLines()
+                apiKey = (lines.firstOrNull { it.startsWith("OPENROUTER_API_KEY=") }?.substringAfter('=') ?: "").trim()
+                model = (lines.firstOrNull { it.startsWith("OPENROUTER_MODEL=") }?.substringAfter('=') ?: model).trim()
+                referer = (lines.firstOrNull { it.startsWith("OPENROUTER_REFERER=") }?.substringAfter('=') ?: referer).trim()
             }
         }
+        
+        // Validate API key is present
+        if (apiKey.isEmpty()) {
+            logger.warn("WARNING: OPENROUTER_API_KEY is not set! Please create a .env file with your API key.")
+            logger.warn("Copy .env.example to .env and add your API key.")
+        }
+        
         debug {
-            // TEMP: Hardcode API key for local dev to avoid 401
-            buildConfigField("String", "OPENROUTER_API_KEY", "\"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\"")
-        buildConfigField("String", "OPENROUTER_MODEL", "\"${'$'}model\"")
-        buildConfigField("String", "OPENROUTER_REFERER", "\"${'$'}referer\"")
+            // Use credentials from .env file (no hardcoded keys)
+            buildConfigField("String", "OPENROUTER_API_KEY", "\"${'$'}apiKey\"")
+            buildConfigField("String", "OPENROUTER_MODEL", "\"${'$'}model\"")
+            buildConfigField("String", "OPENROUTER_REFERER", "\"${'$'}referer\"")
         }
         release {
             isMinifyEnabled = false
@@ -45,8 +55,8 @@ android {
                 "proguard-rules.pro"
             )
             buildConfigField("String", "OPENROUTER_API_KEY", "\"${'$'}apiKey\"")
-        buildConfigField("String", "OPENROUTER_MODEL", "\"${'$'}model\"")
-        buildConfigField("String", "OPENROUTER_REFERER", "\"${'$'}referer\"")
+            buildConfigField("String", "OPENROUTER_MODEL", "\"${'$'}model\"")
+            buildConfigField("String", "OPENROUTER_REFERER", "\"${'$'}referer\"")
         }
     }
     compileOptions {
