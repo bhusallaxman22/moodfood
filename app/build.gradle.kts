@@ -44,9 +44,9 @@ android {
         
         debug {
             // Use credentials from .env file (no hardcoded keys)
-            buildConfigField("String", "OPENROUTER_API_KEY", "\"${'$'}apiKey\"")
-            buildConfigField("String", "OPENROUTER_MODEL", "\"${'$'}model\"")
-            buildConfigField("String", "OPENROUTER_REFERER", "\"${'$'}referer\"")
+            buildConfigField("String", "OPENROUTER_API_KEY", "\"$apiKey\"")
+            buildConfigField("String", "OPENROUTER_MODEL", "\"$model\"")
+            buildConfigField("String", "OPENROUTER_REFERER", "\"$referer\"")
         }
         release {
             isMinifyEnabled = false
@@ -54,9 +54,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "OPENROUTER_API_KEY", "\"${'$'}apiKey\"")
-            buildConfigField("String", "OPENROUTER_MODEL", "\"${'$'}model\"")
-            buildConfigField("String", "OPENROUTER_REFERER", "\"${'$'}referer\"")
+            buildConfigField("String", "OPENROUTER_API_KEY", "\"$apiKey\"")
+            buildConfigField("String", "OPENROUTER_MODEL", "\"$model\"")
+            buildConfigField("String", "OPENROUTER_REFERER", "\"$referer\"")
         }
     }
     compileOptions {
@@ -68,7 +68,7 @@ android {
     }
     buildFeatures {
         compose = true
-    buildConfig = true
+        buildConfig = true
     }
 
     

@@ -8,6 +8,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Save
+import com.example.moodfood.ui.components.MoodIcons
+import com.example.moodfood.ui.components.ModernSelectionChip
+import com.example.moodfood.ui.components.SectionHeader
+import com.example.moodfood.ui.components.MinimalCard
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -96,57 +100,21 @@ fun HomeScreen(navController: NavController) {
         }
         
         // Current Mood Card
-        ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "🎭",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                    Text(
-                        text = "Current Mood",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                EmojiChips(items = moods, selected = state.mood, onSelect = vm::setMood)
-            }
+        MinimalCard {
+            SectionHeader(
+                title = "Current Mood",
+                icon = MoodIcons.Section.Mood
+            )
+            MoodChipsModern(items = moods, selected = state.mood, onSelect = vm::setMood)
         }
         
         // Goal Mood Card
-        ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "🎯",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                    Text(
-                        text = "Goal Mood",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                EmojiChips(items = positiveMoods, selected = state.goal, onSelect = vm::setGoal)
-            }
+        MinimalCard {
+            SectionHeader(
+                title = "Goal Mood",
+                icon = MoodIcons.Section.Target
+            )
+            MoodChipsModern(items = positiveMoods, selected = state.goal, onSelect = vm::setGoal)
         }
         
         // Advanced Options
@@ -266,6 +234,27 @@ private fun SymptomChips(all: List<String>, selected: Set<String>, onToggle: (St
                     borderColor = if (chosen) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
                     borderWidth = if (chosen) 2.dp else 1.dp
                 )
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun MoodChipsModern(items: List<String>, selected: String, onSelect: (String) -> Unit) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items.forEach { label ->
+            val text = label.substringAfter(" ").trim()
+            val icon = MoodIcons.getMoodIcon(text)
+            
+            ModernSelectionChip(
+                label = text,
+                selected = label == selected,
+                onClick = { onSelect(label) },
+                icon = icon
             )
         }
     }

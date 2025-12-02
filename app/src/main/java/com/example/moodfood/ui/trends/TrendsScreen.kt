@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
@@ -16,6 +18,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.moodfood.ui.components.MoodIcons
+import com.example.moodfood.ui.components.SectionHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +60,12 @@ fun TrendsScreen(viewModel: TrendsViewModel = viewModel()) {
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("⚠️", fontSize = 20.sp)
+                        Icon(
+                            imageVector = Icons.Filled.Warning,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.size(20.dp)
+                        )
                         Text(
                             text = errorMessage,
                             style = MaterialTheme.typography.bodyMedium,
@@ -81,18 +90,23 @@ fun TrendsScreen(viewModel: TrendsViewModel = viewModel()) {
                 EmptyTrendsState()
             } else {
                 // Header Card
-                ElevatedCard(
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
                     Column(
                         modifier = Modifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text = "📊",
-                            fontSize = 56.sp
+                        Icon(
+                            imageVector = MoodIcons.Section.Trends,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(64.dp)
                         )
                         
                         Text(
@@ -144,18 +158,23 @@ fun TrendsScreen(viewModel: TrendsViewModel = viewModel()) {
 
 @Composable
 private fun EmptyTrendsState() {
-    ElevatedCard(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
             modifier = Modifier.padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                text = "📈",
-                fontSize = 64.sp
+            Icon(
+                imageVector = MoodIcons.Section.Trends,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(64.dp)
             )
             Text(
                 text = "No Trends Yet",
@@ -180,19 +199,20 @@ private fun MoodChangeCard(
     averageLast30Days: Float,
     change: Float
 ) {
-    ElevatedCard(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = "📈 Mood Trend",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold
-                )
+            SectionHeader(
+                title = "Mood Trend",
+                icon = MoodIcons.Section.Trends
             )
             
             Row(
@@ -343,19 +363,20 @@ private fun MoodDistributionCard(
     distribution: List<MoodDistribution>,
     topMood: String
 ) {
-    ElevatedCard(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                text = "😊 Mood Distribution",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold
-                )
+            SectionHeader(
+                title = "Mood Distribution",
+                icon = MoodIcons.Section.Mood
             )
             
             Text(

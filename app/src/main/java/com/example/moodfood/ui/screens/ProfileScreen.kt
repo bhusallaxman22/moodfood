@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.moodfood.ui.components.MoodIcons
 import kotlinx.coroutines.launch
 
 @Composable
@@ -48,9 +51,11 @@ fun ProfileScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Profile avatar
-                Text(
-                    text = "👤",
-                    fontSize = 64.sp
+                Icon(
+                    imageVector = Icons.Filled.AccountCircle,
+                    contentDescription = "Profile",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(80.dp)
                 )
                 
                 Text(
@@ -78,13 +83,24 @@ fun ProfileScreen(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = "⚙️ Settings",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.padding(bottom = 8.dp)
-                )
+                ) {
+                    Icon(
+                        imageVector = MoodIcons.Section.Settings,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = "Settings",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
                 
                 ProfileToggleItemNew(
                     icon = "🔔",
@@ -133,13 +149,24 @@ fun ProfileScreen(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = "🔐 Privacy & Help",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.padding(bottom = 8.dp)
-                )
+                ) {
+                    Icon(
+                        imageVector = MoodIcons.Section.Privacy,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = "Privacy & Help",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
                 
                 ProfileMenuItemNew(
                     icon = "🛡️",
@@ -185,8 +212,14 @@ fun ProfileScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Icon(
+                    imageVector = MoodIcons.Section.Logout,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "🚪 Sign Out",
+                    text = "Sign Out",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onErrorContainer
@@ -235,6 +268,13 @@ private fun ProfileToggleItemNew(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    // Map emoji icons to Material Icons
+    val imageVector = when(icon) {
+        "🔔" -> Icons.Filled.Notifications
+        "🌙" -> Icons.Filled.DarkMode
+        else -> Icons.Filled.Settings
+    }
+    
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -247,7 +287,12 @@ private fun ProfileToggleItemNew(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.weight(1f)
         ) {
-            Text(text = icon, fontSize = 24.sp)
+            Icon(
+                imageVector = imageVector,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
             Column {
                 Text(
                     text = title,
@@ -277,6 +322,16 @@ private fun ProfileMenuItemNew(
     subtitle: String,
     onClick: () -> Unit
 ) {
+    // Map emoji icons to Material Icons
+    val imageVector = when(icon) {
+        "🔒" -> Icons.Filled.Lock
+        "🍽️" -> Icons.Filled.Restaurant
+        "🛡️" -> Icons.Filled.Shield
+        "❓" -> Icons.Filled.Help
+        "📄" -> Icons.Filled.Description
+        else -> Icons.Filled.Settings
+    }
+    
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -290,7 +345,12 @@ private fun ProfileMenuItemNew(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.weight(1f)
         ) {
-            Text(text = icon, fontSize = 24.sp)
+            Icon(
+                imageVector = imageVector,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
             Column {
                 Text(
                     text = title,
@@ -306,11 +366,10 @@ private fun ProfileMenuItemNew(
                 )
             }
         }
-        Text(
-            text = "›",
-            style = MaterialTheme.typography.headlineSmall.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        Icon(
+            imageVector = Icons.Filled.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

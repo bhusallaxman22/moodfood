@@ -44,7 +44,6 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
 
     fun getSuggestion(navController: NavController? = null) {
         val apiKey = BuildConfig.OPENROUTER_API_KEY
-        Log.d("OpenRouter", "API key from BuildConfig: length=${apiKey.length}, valid=${apiKey.isNotBlank()}")
         if (apiKey.isBlank()) {
             _state.value = _state.value.copy(error = "Missing OpenRouter API key. Please add it to .env file.", loading = false)
             return
