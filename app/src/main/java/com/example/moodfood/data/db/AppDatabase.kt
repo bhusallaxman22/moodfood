@@ -9,6 +9,8 @@ import com.example.moodfood.data.auth.UserSessionEntity
 import com.example.moodfood.data.auth.UserDao
 import com.example.moodfood.data.auth.UserSessionDao
 import com.example.moodfood.data.progress.*
+import com.example.moodfood.data.preferences.FoodPreferences
+import com.example.moodfood.data.preferences.FoodPreferencesDao
 
 @Database(
     entities = [
@@ -18,9 +20,10 @@ import com.example.moodfood.data.progress.*
         MoodEntry::class,
         NutritionLog::class,
         AchievementEntity::class,
-        UserPreferences::class
+        UserPreferences::class,
+        FoodPreferences::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -28,6 +31,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun userSessionDao(): UserSessionDao
     abstract fun progressDao(): ProgressDao
+    abstract fun foodPreferencesDao(): FoodPreferencesDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null

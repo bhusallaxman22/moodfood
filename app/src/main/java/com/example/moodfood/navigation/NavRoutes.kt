@@ -16,4 +16,6 @@ sealed class NavRoute(val route: String) {
     data object HelpAndSupport : NavRoute("help_and_support")
     data object ChangePassword : NavRoute("change_password")
     data object PrivacySettings : NavRoute("privacy_settings")
+    data object FoodPreferences : NavRoute("food_preferences")
+    data object FoodPreferencesSetup : NavRoute("food_preferences_setup")
 }

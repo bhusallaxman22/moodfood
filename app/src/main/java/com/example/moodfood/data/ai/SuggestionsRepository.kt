@@ -22,12 +22,20 @@ import java.util.*
 class SuggestionsRepository(private val service: OpenRouterService, private val context: Context) {
     
     private val moodNutritionService = MoodNutritionService(context)
+    private val preferencesRepository = com.example.moodfood.data.preferences.FoodPreferencesRepository(context)
     
     suspend fun getNutritionSuggestion(mood: String, goal: String): Pair<NutritionSuggestion, Long> {
         val moodInfo = moodNutritionService.getMoodNutrition(mood)
             ?: throw Exception("No nutrition data found for mood: $mood")
         
-        val prompt = buildPrompt(mood, goal, moodInfo.foods, moodInfo.nutrients)
+        // Get user's food preferences
+        val preferences = preferencesRepository.getUserPreferencesOnce()
+        
+        val prompt = if (preferences != null && preferences.isSetupComplete) {
+            buildPromptWithPreferences(mood, goal, moodInfo.foods, moodInfo.nutrients, preferences)
+        } else {
+            buildPrompt(mood, goal, moodInfo.foods, moodInfo.nutrients)
+        }
         val systemPrompt = buildSystemPrompt()
         
         val payload = """
@@ -142,6 +150,57 @@ The JSON must follow this exact structure:
         return """I am feeling $mood and my goal is to $goal. I know that for my mood, I should eat foods like ${foods.joinToString(", ")} which are rich in ${nutrients.joinToString(", ")}. 
 
 Please provide a nutrition suggestion in the JSON format specified in the system prompt. Keep it concise, practical, and engaging for someone feeling $mood who wants to $goal."""
+    }
+    
+    private fun buildPromptWithPreferences(
+        mood: String, 
+        goal: String, 
+        foods: List<String>, 
+        nutrients: List<String>,
+        preferences: com.example.moodfood.data.preferences.FoodPreferences
+    ): String {
+        val basePrompt = buildPrompt(mood, goal, foods, nutrients)
+        
+        val preferencesText = buildString {
+            append("\n\nIMPORTANT - User's dietary preferences:")
+            
+            if (preferences.dietaryRestrictions.isNotBlank()) {
+                val restrictions = preferences.dietaryRestrictions.split(",").map { it.trim() }
+                append("\n- Dietary restrictions: ${restrictions.joinToString(", ")} (MUST strictly follow)")
+            }
+            
+            if (preferences.allergies.isNotBlank()) {
+                val allergies = preferences.allergies.split(",").map { it.trim() }
+                append("\n- ALLERGIES: ${allergies.joinToString(", ")} (NEVER include these - CRITICAL)")
+            }
+            
+            if (preferences.dislikedFoods.isNotBlank()) {
+                val disliked = preferences.dislikedFoods.split(",").map { it.trim() }
+                append("\n- Foods to avoid: ${disliked.joinToString(", ")}")
+            }
+            
+            if (preferences.preferredCuisines.isNotBlank()) {
+                val cuisines = preferences.preferredCuisines.split(",").map { it.trim() }
+                append("\n- Preferred cuisines: ${cuisines.joinToString(", ")}")
+            }
+            
+            append("\n- Spice level: ${preferences.spiceLevel}")
+            append("\n- Meal complexity: ${preferences.mealComplexity}")
+            append("\n- Cooking time: max ${preferences.cookingTime} minutes")
+            append("\n- Budget: ${preferences.budget}")
+            
+            if (preferences.organicPreference) {
+                append("\n- Prefers organic ingredients when possible")
+            }
+            
+            if (preferences.localPreference) {
+                append("\n- Prefers locally sourced ingredients when possible")
+            }
+            
+            append("\n\nEnsure the suggestion strictly respects these preferences, especially allergies and dietary restrictions.")
+        }
+        
+        return basePrompt + preferencesText
     }
     
     fun parseNutritionSuggestion(raw: String): NutritionSuggestion {
