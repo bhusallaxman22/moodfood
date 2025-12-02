@@ -16,6 +16,7 @@ import com.example.moodfood.ui.components.BottomBar
 import com.example.moodfood.ui.auth.OnboardingScreen
 import com.example.moodfood.ui.auth.LoginScreen
 import com.example.moodfood.ui.auth.SignupScreen
+import com.example.moodfood.ui.auth.ForgotPasswordScreen
 import com.example.moodfood.ui.onboarding.TutorialScreen
 import com.example.moodfood.ui.screens.*
 import com.example.moodfood.ui.suggestion.SuggestionDetailScreen
@@ -70,6 +71,9 @@ fun AppNavHost(
                     },
                     onNavigateToSignup = {
                         navController.navigate(NavRoute.Signup.route)
+                    },
+                    onNavigateToForgotPassword = {
+                        navController.navigate(NavRoute.ForgotPassword.route)
                     }
                 )
             }
@@ -84,6 +88,18 @@ fun AppNavHost(
                     },
                     onNavigateToLogin = {
                         navController.popBackStack()
+                    }
+                )
+            }
+            composable(NavRoute.ForgotPassword.route) {
+                ForgotPasswordScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onResetSuccess = {
+                        navController.navigate(NavRoute.Login.route) {
+                            popUpTo(NavRoute.Login.route) { inclusive = true }
+                        }
                     }
                 )
             }

@@ -2,6 +2,7 @@ package com.example.moodfood.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,40 +21,46 @@ fun ModernSelectionChip(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    icon: ImageVector? = null
+    icon: ImageVector? = null,
+    iconColor: androidx.compose.ui.graphics.Color? = null
 ) {
     FilterChip(
         selected = selected,
         onClick = onClick,
         label = {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp)
             ) {
                 if (icon != null) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        modifier = Modifier.size(32.dp),
-                        tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        modifier = Modifier.size(40.dp),
+                        tint = iconColor ?: (if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                 }
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                        fontSize = 16.sp
                     )
                 )
             }
         },
-        modifier = modifier,
+        modifier = modifier
+            .widthIn(min = 110.dp)
+            .heightIn(min = 110.dp),
         border = if (selected) 
             BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
         else 
             FilterChipDefaults.filterChipBorder(
                 enabled = true,
                 selected = false
-            )
+            ),
+        shape = RoundedCornerShape(16.dp)
     )
 }
 

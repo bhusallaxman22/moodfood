@@ -4,6 +4,7 @@ sealed class NavRoute(val route: String) {
     data object Onboarding : NavRoute("onboarding")
     data object Login : NavRoute("login")
     data object Signup : NavRoute("signup")
+    data object ForgotPassword : NavRoute("forgot_password")
     data object Tutorial : NavRoute("tutorial")
     data object Home : NavRoute("home")
     data object Recipes : NavRoute("Recipes")

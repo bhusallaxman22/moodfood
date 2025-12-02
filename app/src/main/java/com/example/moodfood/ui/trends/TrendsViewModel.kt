@@ -52,10 +52,10 @@ class TrendsViewModel(app: Application) : AndroidViewModel(app) {
     val uiState: StateFlow<TrendsUiState> = _uiState.asStateFlow()
 
     init {
-        loadTrendsData()
+        observeTrendsData()
     }
 
-    fun loadTrendsData() {
+    private fun observeTrendsData() {
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -63,8 +63,8 @@ class TrendsViewModel(app: Application) : AndroidViewModel(app) {
                 // Get mood entries for last 30 days
                 val today = LocalDate.now()
                 val thirtyDaysAgo = today.minusDays(30).format(DateTimeFormatter.ISO_LOCAL_DATE)
-                val sevenDaysAgo = today.minusDays(7).format(DateTimeFormatter.ISO_LOCAL_DATE)
                 
+                // Continuously observe mood entries - this will update automatically when new entries are added
                 progressRepository.getMoodEntriesSince(thirtyDaysAgo).collect { entries ->
                     if (entries.isEmpty()) {
                         _uiState.value = TrendsUiState(
@@ -124,7 +124,7 @@ class TrendsViewModel(app: Application) : AndroidViewModel(app) {
                     )
                 }
             } catch (e: Exception) {
-                Log.e("TrendsViewModel", "Failed to load trends data: ${e.message}", e)
+                Log.e("TrendsViewModel", "Failed to observe trends data: ${e.message}", e)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = "Failed to load trends: ${e.message}"
@@ -191,7 +191,11 @@ class TrendsViewModel(app: Application) : AndroidViewModel(app) {
     }
     
     fun refreshData() {
-        loadTrendsData()
+        // The ongoing collect in observeTrendsData will automatically pick up new data
+        // No need to restart collection, just indicate we're refreshing
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+        }
     }
     
     fun clearError() {

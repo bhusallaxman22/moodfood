@@ -16,7 +16,11 @@ data class UserEntity(
     val createdAt: Long = System.currentTimeMillis(),
     val lastLoginAt: Long = System.currentTimeMillis(),
     val isActive: Boolean = true,
-    val preferences: String = "{}" // JSON string for user preferences
+    val preferences: String = "{}", // JSON string for user preferences
+    val securityQuestion1: String? = null,
+    val securityAnswer1Hash: String? = null,
+    val securityQuestion2: String? = null,
+    val securityAnswer2Hash: String? = null
 )
 
 enum class AuthProvider {

@@ -84,7 +84,11 @@ class AuthRepository private constructor(private val context: Context) {
         email: String,
         username: String,
         password: String,
-        fullName: String
+        fullName: String,
+        securityQuestion1: String,
+        securityAnswer1: String,
+        securityQuestion2: String,
+        securityAnswer2: String
     ): AuthResult {
         try {
             // Check if user already exists
@@ -108,17 +112,30 @@ class AuthRepository private constructor(private val context: Context) {
             if (username.length < 3) {
                 return AuthResult.Error("Username must be at least 3 characters")
             }
+            if (securityAnswer1.length < 2 || securityAnswer2.length < 2) {
+                return AuthResult.Error("Security answers must be at least 2 characters")
+            }
 
-            // Create user
+            // Create user with hashed password and security answers
             val salt = generateSalt()
             val hashedPassword = hashPassword(password, salt)
+            
+            val answer1Salt = generateSalt()
+            val hashedAnswer1 = hashPassword(securityAnswer1.lowercase().trim(), answer1Salt)
+            
+            val answer2Salt = generateSalt()
+            val hashedAnswer2 = hashPassword(securityAnswer2.lowercase().trim(), answer2Salt)
             
             val user = UserEntity(
                 email = email,
                 username = username,
-                passwordHash = "$hashedPassword:$salt", // Store hash:salt format
+                passwordHash = "$hashedPassword:$salt",
                 fullName = fullName,
-                authProvider = AuthProvider.EMAIL_PASSWORD
+                authProvider = AuthProvider.EMAIL_PASSWORD,
+                securityQuestion1 = securityQuestion1,
+                securityAnswer1Hash = "$hashedAnswer1:$answer1Salt",
+                securityQuestion2 = securityQuestion2,
+                securityAnswer2Hash = "$hashedAnswer2:$answer2Salt"
             )
 
             val userId = userDao.insertUser(user)
@@ -347,6 +364,88 @@ class AuthRepository private constructor(private val context: Context) {
             sessionDao.cleanupExpiredSessions()
         } catch (e: Exception) {
             Log.e("AuthRepository", "Session cleanup failed", e)
+        }
+    }
+    
+    // Password Reset with Security Questions
+    suspend fun getUserSecurityQuestions(email: String): Pair<String?, String?>? {
+        return try {
+            val user = userDao.getUserByEmail(email)
+            if (user != null && user.authProvider == AuthProvider.EMAIL_PASSWORD) {
+                Pair(user.securityQuestion1, user.securityQuestion2)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Failed to get security questions", e)
+            null
+        }
+    }
+    
+    suspend fun verifySecurityAnswers(
+        email: String,
+        answer1: String,
+        answer2: String
+    ): Boolean {
+        return try {
+            val user = userDao.getUserByEmail(email) ?: return false
+            if (user.authProvider != AuthProvider.EMAIL_PASSWORD) return false
+            
+            val answer1Hash = user.securityAnswer1Hash ?: return false
+            val answer2Hash = user.securityAnswer2Hash ?: return false
+            
+            // Verify first answer
+            val (hash1, salt1) = answer1Hash.split(":").let { it[0] to it[1] }
+            val inputHash1 = hashPassword(answer1.lowercase().trim(), salt1)
+            
+            // Verify second answer
+            val (hash2, salt2) = answer2Hash.split(":").let { it[0] to it[1] }
+            val inputHash2 = hashPassword(answer2.lowercase().trim(), salt2)
+            
+            hash1 == inputHash1 && hash2 == inputHash2
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Failed to verify security answers", e)
+            false
+        }
+    }
+    
+    suspend fun resetPassword(
+        email: String,
+        newPassword: String,
+        answer1: String,
+        answer2: String
+    ): AuthResult {
+        try {
+            val user = userDao.getUserByEmail(email)
+                ?: return AuthResult.Error("User not found")
+                
+            if (user.authProvider != AuthProvider.EMAIL_PASSWORD) {
+                return AuthResult.Error("Password reset not supported for this account type")
+            }
+            
+            // Verify security answers
+            if (!verifySecurityAnswers(email, answer1, answer2)) {
+                return AuthResult.Error("Security answers do not match")
+            }
+            
+            // Validate new password
+            if (newPassword.length < 6) {
+                return AuthResult.Error("New password must be at least 6 characters")
+            }
+            
+            // Update password
+            val newSalt = generateSalt()
+            val newHash = hashPassword(newPassword, newSalt)
+            
+            val updatedUser = user.copy(passwordHash = "$newHash:$newSalt")
+            userDao.updateUser(updatedUser)
+            
+            Log.d("AuthRepository", "Password reset successfully for user: ${user.email}")
+            return AuthResult.Success(updatedUser)
+            
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Password reset failed", e)
+            return AuthResult.Error("Password reset failed: ${e.message}")
         }
     }
 }

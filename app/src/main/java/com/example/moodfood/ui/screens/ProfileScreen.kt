@@ -32,77 +32,87 @@ fun ProfileScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(20.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+            .verticalScroll(rememberScrollState())
     ) {
-        // Profile Header Card
-        ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
+        // Profile Header with gradient
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.tertiaryContainer
+                        )
+                    )
+                )
+                .padding(32.dp),
+            contentAlignment = Alignment.Center
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Profile avatar
-                Icon(
-                    imageVector = Icons.Filled.AccountCircle,
-                    contentDescription = "Profile",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(80.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .background(
+                            MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+                            shape = androidx.compose.foundation.shape.CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.AccountCircle,
+                        contentDescription = "Profile",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(80.dp)
+                    )
+                }
                 
                 Text(
                     text = state.userName,
-                    style = MaterialTheme.typography.headlineSmall.copy(
+                    style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold
-                    )
+                    ),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 
                 Text(
                     text = state.userEmail,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                 )
             }
         }
         
-        // Settings Section
-        ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+        // Content
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+        
+            // Settings Section
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Icon(
-                        imageVector = MoodIcons.Section.Settings,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
                     Text(
                         text = "Settings",
-                        style = MaterialTheme.typography.titleMedium.copy(
+                        style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold
-                        )
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(bottom = 12.dp)
                     )
-                }
                 
-                ProfileToggleItemNew(
+                    ProfileToggleItemNew(
                     icon = "🔔",
                     title = "Notifications",
                     subtitle = "Get reminders and updates",
@@ -228,7 +238,8 @@ fun ProfileScreen(
             }
         }
         
-        Spacer(modifier = Modifier.height(80.dp))
+            Spacer(modifier = Modifier.height(80.dp))
+        }
     }
     
     // Logout Confirmation Dialog

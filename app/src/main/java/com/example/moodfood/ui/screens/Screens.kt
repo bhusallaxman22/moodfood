@@ -79,52 +79,94 @@ fun HomeScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Welcome Header
+        // Welcome Header with gradient
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    androidx.compose.ui.graphics.Brush.horizontalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.secondaryContainer
+                        )
+                    )
+                )
+                .padding(24.dp)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "MoodFood",
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = "How are you feeling today?",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                )
+            }
+        }
+        
+        // Content
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            Text(
-                text = "MoodFood",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "How are you feeling today?",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
         
-        // Current Mood Card
-        MinimalCard {
-            SectionHeader(
-                title = "Current Mood",
-                icon = MoodIcons.Section.Mood
-            )
-            MoodChipsModern(items = moods, selected = state.mood, onSelect = vm::setMood)
-        }
+            // Current Mood Card
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Current Mood",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    MoodChipsModern(items = moods, selected = state.mood, onSelect = vm::setMood)
+                }
+            }
+            
+            // Goal Mood Card
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Goal Mood",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    MoodChipsModern(items = positiveMoods, selected = state.goal, onSelect = vm::setGoal)
+                }
+            }
         
-        // Goal Mood Card
-        MinimalCard {
-            SectionHeader(
-                title = "Goal Mood",
-                icon = MoodIcons.Section.Target
-            )
-            MoodChipsModern(items = positiveMoods, selected = state.goal, onSelect = vm::setGoal)
-        }
-        
-        // Advanced Options
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            // Advanced Options
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -137,17 +179,19 @@ fun HomeScreen(navController: NavController) {
                     }
                 }
                 
-                if (showAdvanced) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Additional Symptoms",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    SymptomChips(
-                        all = symptomsAll,
-                        selected = state.symptoms.toSet(),
+                    if (showAdvanced) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Additional Symptoms",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        SymptomChips(
+                            all = symptomsAll,
+                            selected = state.symptoms.toSet(),
                         onToggle = { tag ->
                             val next = state.symptoms.toMutableList().also {
                                 if (it.contains(tag)) it.remove(tag) else it.add(tag)
@@ -159,48 +203,54 @@ fun HomeScreen(navController: NavController) {
             }
         }
         
-        // Get Suggestion Button
-        Button(
-            onClick = { vm.getSuggestion(navController) },
-            enabled = state.mood.isNotBlank() && !state.loading,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            )
-        ) {
-            Text(
-                text = if (state.loading) "Generating..." else "✨ Get Personalized Suggestion",
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-        
-        if (state.loading) {
-            LinearProgressIndicator(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-        
-        state.error?.let { 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                )
+            // Get Suggestion Button
+            Button(
+                onClick = { vm.getSuggestion(navController) },
+                enabled = state.mood.isNotBlank() && !state.loading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                shape = RoundedCornerShape(28.dp)
             ) {
                 Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyMedium
+                    text = if (state.loading) "Generating..." else "✨ Get Personalized Suggestion",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
                 )
             }
-        }
         
-        // Recent Suggestions - Disabled (recent property not in HomeUiState)
-        // TODO: Add recent suggestions feature
+            if (state.loading) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            }
+        
+            state.error?.let { 
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(20.dp),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+            
+            // Recent Suggestions - Disabled (recent property not in HomeUiState)
+            // TODO: Add recent suggestions feature
+        }
     }
 }
 
@@ -249,12 +299,14 @@ private fun MoodChipsModern(items: List<String>, selected: String, onSelect: (St
         items.forEach { label ->
             val text = label.substringAfter(" ").trim()
             val icon = MoodIcons.getMoodIcon(text)
+            val color = MoodIcons.getMoodColor(text)
             
             ModernSelectionChip(
                 label = text,
                 selected = label == selected,
                 onClick = { onSelect(label) },
-                icon = icon
+                icon = icon,
+                iconColor = color
             )
         }
     }

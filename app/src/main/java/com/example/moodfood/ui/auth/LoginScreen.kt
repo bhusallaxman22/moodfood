@@ -26,6 +26,7 @@ import com.example.moodfood.ui.components.AuthTextField
 fun LoginScreen(
     onSignInSuccess: () -> Unit,
     onNavigateToSignup: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: AuthViewModel = viewModel()
 ) {
@@ -172,7 +173,7 @@ fun LoginScreen(
         ) {
             AuthLinkButton(
                 text = "Forgot Password?",
-                onClick = { /* TODO: Implement forgot password */ }
+                onClick = onNavigateToForgotPassword
             )
 
             AuthLinkButton(

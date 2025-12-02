@@ -98,7 +98,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
                     errorMessage = null
                 )
                 
-                when (val result = authRepository.registerWithEmail(email, username, password, fullName)) {
+                when (val result = authRepository.registerWithEmail(email, username, password, fullName, "", "", "", "")) {
                     is AuthResult.Success -> {
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
@@ -284,6 +284,66 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
     
+    // Password Reset Methods
+    fun getSecurityQuestions(
+        email: String,
+        onResult: (Pair<String?, String?>?) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val questions = authRepository.getUserSecurityQuestions(email)
+                onResult(questions)
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Failed to get security questions", e)
+                onResult(null)
+            }
+        }
+    }
+    
+    fun verifySecurityAnswers(
+        email: String,
+        answer1: String,
+        answer2: String,
+        onResult: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val isValid = authRepository.verifySecurityAnswers(email, answer1, answer2)
+                onResult(isValid)
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Failed to verify security answers", e)
+                onResult(false)
+            }
+        }
+    }
+    
+    fun resetPassword(
+        email: String,
+        newPassword: String,
+        answer1: String,
+        answer2: String,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                when (val result = authRepository.resetPassword(email, newPassword, answer1, answer2)) {
+                    is AuthResult.Success -> {
+                        _uiState.value = _uiState.value.copy(
+                            successMessage = "Password reset successfully! Please log in."
+                        )
+                        onResult(true, null)
+                    }
+                    is AuthResult.Error -> {
+                        onResult(false, result.message)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Password reset exception", e)
+                onResult(false, "An unexpected error occurred")
+            }
+        }
+    }
+    
     // Compatibility methods for simple UI (LoginScreen/SignupScreen from main)
     // These delegate to the enhanced methods above
     fun signIn(email: String, password: String) {
@@ -304,5 +364,69 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         val fullName = username.replaceFirstChar { it.uppercase() }
         
         registerWithEmail(email, username, password, fullName)
+    }
+    
+    fun signUpWithSecurityQuestions(
+        email: String,
+        password: String,
+        confirmPassword: String,
+        securityQuestion1: String,
+        securityAnswer1: String,
+        securityQuestion2: String,
+        securityAnswer2: String
+    ) {
+        viewModelScope.launch {
+            try {
+                if (password != confirmPassword) {
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = "Passwords do not match"
+                    )
+                    return@launch
+                }
+                
+                _uiState.value = _uiState.value.copy(
+                    isLoading = true,
+                    errorMessage = null
+                )
+                
+                // Extract username from email (before @)
+                val username = email.substringBefore("@")
+                // Use email as fullName if not provided
+                val fullName = username.replaceFirstChar { it.uppercase() }
+                
+                when (val result = authRepository.registerWithEmail(
+                    email = email,
+                    username = username,
+                    password = password,
+                    fullName = fullName,
+                    securityQuestion1 = securityQuestion1,
+                    securityAnswer1 = securityAnswer1,
+                    securityQuestion2 = securityQuestion2,
+                    securityAnswer2 = securityAnswer2
+                )) {
+                    is AuthResult.Success -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            successMessage = "Account created successfully! Please log in.",
+                            isSuccess = true
+                        )
+                        Log.d("AuthViewModel", "Registration with security questions successful")
+                    }
+                    is AuthResult.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            errorMessage = result.message
+                        )
+                        Log.e("AuthViewModel", "Registration failed: ${result.message}")
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = "An unexpected error occurred"
+                )
+                Log.e("AuthViewModel", "Registration exception", e)
+            }
+        }
     }
 }

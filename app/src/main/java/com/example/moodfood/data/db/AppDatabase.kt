@@ -23,7 +23,7 @@ import com.example.moodfood.data.preferences.FoodPreferencesDao
         UserPreferences::class,
         FoodPreferences::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

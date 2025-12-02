@@ -46,19 +46,53 @@ fun ProgressScreen(viewModel: UserStatsViewModel = viewModel()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(20.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            // Error Snackbar
-            error?.let { errorMessage ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
+            // Header with gradient
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        androidx.compose.ui.graphics.Brush.horizontalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.tertiaryContainer,
+                                MaterialTheme.colorScheme.primaryContainer
+                            )
+                        )
                     )
+                    .padding(24.dp)
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    Text(
+                        text = "Your Progress",
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                    Text(
+                        text = "Track your journey to better wellbeing",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
+                    )
+                }
+            }
+            
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // Error Snackbar
+                error?.let { errorMessage ->
+                    ElevatedCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        ),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+                    ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -85,19 +119,17 @@ fun ProgressScreen(viewModel: UserStatsViewModel = viewModel()) {
                 ) {
                     CircularProgressIndicator()
                 }
-            } else {
-                userStats?.let { stats ->
-                // Header Card
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                } else {
+                    userStats?.let { stats ->
+                        // Stats Overview Card
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Icon(
@@ -281,7 +313,8 @@ fun ProgressScreen(viewModel: UserStatsViewModel = viewModel()) {
                     }
                 }
                 
-                    Spacer(modifier = Modifier.height(80.dp))
+                        Spacer(modifier = Modifier.height(80.dp))
+                    }
                 }
             }
         }

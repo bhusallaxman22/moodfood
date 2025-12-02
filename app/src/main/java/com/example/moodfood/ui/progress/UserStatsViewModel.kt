@@ -61,21 +61,21 @@ class UserStatsViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         // Automatically load stats when ViewModel is created
-        loadUserStats()
+        observeUserStats()
     }
 
-    fun loadUserStats() {
+    private fun observeUserStats() {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
                 _error.value = null
 
-                // Collect real-time data from repository
+                // Continuously observe real-time data from repository
                 combine(
                     progressRepository.getRecentMoodEntries(10),
                     progressRepository.getUserAchievements()
                 ) { moodEntries, achievements ->
-                    // Get aggregate stats
+                    // Get aggregate stats (these need to be called inside combine for real-time updates)
                     val totalSessions = progressRepository.getTotalSessions()
                     val (avgMood, _) = progressRepository.getAverageMood()
                     val currentStreak = progressRepository.getCurrentStreak()
@@ -135,12 +135,13 @@ class UserStatsViewModel(app: Application) : AndroidViewModel(app) {
                     )
                 }.collect { stats ->
                     _userStats.value = stats
-                    _isLoading.value = false
-                    _isRefreshing.value = false
+                    // Only clear loading on first load, keep updating stats in background
+                    if (_isLoading.value) _isLoading.value = false
+                    if (_isRefreshing.value) _isRefreshing.value = false
                 }
 
             } catch (e: Exception) {
-                Log.e("UserStatsViewModel", "Failed to load user stats: ${e.message}", e)
+                Log.e("UserStatsViewModel", "Failed to observe user stats: ${e.message}", e)
                 _isLoading.value = false
                 _isRefreshing.value = false
                 _error.value = "Failed to load progress data: ${e.message}"
@@ -152,19 +153,10 @@ class UserStatsViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun refreshStats() {
-        viewModelScope.launch {
-            try {
-                _isRefreshing.value = true
-                _error.value = null
-                
-                // Reload all stats
-                loadUserStats()
-            } catch (e: Exception) {
-                Log.e("UserStatsViewModel", "Failed to refresh stats: ${e.message}", e)
-                _isRefreshing.value = false
-                _error.value = "Failed to refresh data: ${e.message}"
-            }
-        }
+        // Just set refreshing flag, the ongoing collect will pick up changes
+        _isRefreshing.value = true
+        // The combine flow will automatically emit new data
+        // and _isRefreshing will be cleared in the collect block
     }
 
     fun clearError() {

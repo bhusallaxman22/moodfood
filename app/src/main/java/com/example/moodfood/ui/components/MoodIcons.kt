@@ -3,6 +3,7 @@ package com.example.moodfood.ui.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
@@ -21,6 +22,21 @@ object MoodIcons {
             "content" -> Icons.Filled.FavoriteBorder
             "energetic" -> Icons.Filled.Bolt
             else -> Icons.Filled.SentimentNeutral
+        }
+    }
+
+    fun getMoodColor(mood: String): Color {
+        return when (mood.lowercase()) {
+            "happy" -> Color(0xFFFFC107) // Amber
+            "calm" -> Color(0xFF4FC3F7) // Light Blue
+            "low", "sad" -> Color(0xFF7E57C2) // Deep Purple
+            "anxious" -> Color(0xFFFF7043) // Deep Orange
+            "stressed" -> Color(0xFFEF5350) // Red
+            "irritable" -> Color(0xFFE91E63) // Pink
+            "fatigued", "tired" -> Color(0xFF9575CD) // Medium Purple
+            "content" -> Color(0xFF66BB6A) // Green
+            "energetic" -> Color(0xFFFF9800) // Orange
+            else -> Color(0xFF78909C) // Blue Grey
         }
     }
 

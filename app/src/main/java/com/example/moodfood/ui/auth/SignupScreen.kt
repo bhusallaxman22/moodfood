@@ -21,6 +21,7 @@ import com.example.moodfood.ui.components.AuthButton
 import com.example.moodfood.ui.components.AuthLinkButton
 import com.example.moodfood.ui.components.AuthTextField
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignupScreen(
     onSignUpSuccess: () -> Unit,
@@ -31,8 +32,24 @@ fun SignupScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var securityQuestion1 by remember { mutableStateOf("What city were you born in?") }
+    var securityAnswer1 by remember { mutableStateOf("") }
+    var securityQuestion2 by remember { mutableStateOf("What was your first pet's name?") }
+    var securityAnswer2 by remember { mutableStateOf("") }
+    var showSecurityQuestions by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val uiState by viewModel.uiState.collectAsState()
+    
+    val availableQuestions = listOf(
+        "What city were you born in?",
+        "What was your first pet's name?",
+        "What is your mother's maiden name?",
+        "What was the name of your first school?",
+        "What street did you grow up on?",
+        "What was your childhood nickname?",
+        "What is your favorite book?",
+        "What was the make of your first car?"
+    )
 
     // Handle success state
     LaunchedEffect(uiState.isSuccess) {
@@ -127,19 +144,163 @@ fun SignupScreen(
                     label = "Confirm Password",
                     isPassword = true,
                     isError = uiState.errorMessage != null,
-                    imeAction = ImeAction.Done,
-                    onImeAction = { 
-                        focusManager.clearFocus()
-                        viewModel.signUp(email, password, confirmPassword)
-                    }
+                    imeAction = ImeAction.Next,
+                    onImeAction = { focusManager.moveFocus(FocusDirection.Down) }
                 )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // Security Questions Toggle
+                OutlinedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { showSecurityQuestions = !showSecurityQuestions }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Security Questions",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                            )
+                            Text(
+                                text = "Required for password recovery",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Text(
+                            text = if (showSecurityQuestions) "▲" else "▼",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+                
+                // Security Questions Section (Expandable)
+                if (showSecurityQuestions) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    // Question 1
+                    ExposedDropdownMenuBox(
+                        expanded = false,
+                        onExpandedChange = { }
+                    ) {
+                        var expanded1 by remember { mutableStateOf(false) }
+                        
+                        ExposedDropdownMenuBox(
+                            expanded = expanded1,
+                            onExpandedChange = { expanded1 = it }
+                        ) {
+                            OutlinedTextField(
+                                value = securityQuestion1,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Security Question 1") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded1) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(),
+                                colors = OutlinedTextFieldDefaults.colors()
+                            )
+                            
+                            ExposedDropdownMenu(
+                                expanded = expanded1,
+                                onDismissRequest = { expanded1 = false }
+                            ) {
+                                availableQuestions.forEach { question ->
+                                    DropdownMenuItem(
+                                        text = { Text(question) },
+                                        onClick = {
+                                            securityQuestion1 = question
+                                            expanded1 = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    
+                    AuthTextField(
+                        value = securityAnswer1,
+                        onValueChange = { securityAnswer1 = it },
+                        label = "Your Answer",
+                        imeAction = ImeAction.Next,
+                        onImeAction = { focusManager.moveFocus(FocusDirection.Down) }
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    // Question 2
+                    var expanded2 by remember { mutableStateOf(false) }
+                    
+                    ExposedDropdownMenuBox(
+                        expanded = expanded2,
+                        onExpandedChange = { expanded2 = it }
+                    ) {
+                        OutlinedTextField(
+                            value = securityQuestion2,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Security Question 2") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded2) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(),
+                            colors = OutlinedTextFieldDefaults.colors()
+                        )
+                        
+                        ExposedDropdownMenu(
+                            expanded = expanded2,
+                            onDismissRequest = { expanded2 = false }
+                        ) {
+                            availableQuestions
+                                .filter { it != securityQuestion1 } // Don't show same question
+                                .forEach { question ->
+                                    DropdownMenuItem(
+                                        text = { Text(question) },
+                                        onClick = {
+                                            securityQuestion2 = question
+                                            expanded2 = false
+                                        }
+                                    )
+                                }
+                        }
+                    }
+                    
+                    AuthTextField(
+                        value = securityAnswer2,
+                        onValueChange = { securityAnswer2 = it },
+                        label = "Your Answer",
+                        imeAction = ImeAction.Done,
+                        onImeAction = { 
+                            focusManager.clearFocus()
+                        }
+                    )
+                }
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 // Sign Up Button
                 AuthButton(
                     text = "Create Account",
-                    onClick = { viewModel.signUp(email, password, confirmPassword) },
+                    onClick = {
+                        if (securityAnswer1.isNotBlank() && securityAnswer2.isNotBlank()) {
+                            viewModel.signUpWithSecurityQuestions(
+                                email = email,
+                                password = password,
+                                confirmPassword = confirmPassword,
+                                securityQuestion1 = securityQuestion1,
+                                securityAnswer1 = securityAnswer1,
+                                securityQuestion2 = securityQuestion2,
+                                securityAnswer2 = securityAnswer2
+                            )
+                        } else {
+                            viewModel.signUp(email, password, confirmPassword)
+                        }
+                    },
                     enabled = email.isNotBlank() && password.isNotBlank() && confirmPassword.isNotBlank(),
                     loading = uiState.isLoading
                 )
