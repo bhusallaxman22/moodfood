@@ -20,22 +20,17 @@ interface OpenRouterService {
 
 class AuthInterceptor(private val apiKey: String) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): OkHttpResponse {
-        Log.d("OpenRouter", "API key length: ${apiKey.length}, starts with: ${apiKey.take(15)}")
         val req = chain.request().newBuilder()
             .addHeader("Authorization", "Bearer $apiKey")
             .build()
-        Log.d("OpenRouter", "Authorization header: ${req.header("Authorization")}")
         return chain.proceed(req)
     }
 }
 
 object OpenRouterClientFactory {
     fun create(apiKey: String): OpenRouterService {
-        Log.d("OpenRouterFactory", "Creating client with API key length: ${apiKey.length}")
-        Log.d("OpenRouterFactory", "API key starts with: ${apiKey.take(20)}")
-        
         val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY // Changed to BODY to see full request/response
+            level = HttpLoggingInterceptor.Level.HEADERS
             redactHeader("Authorization")
         }
         val http = OkHttpClient.Builder()
