@@ -261,12 +261,3 @@ The database version is managed in `AppDatabase.kt`. The current development bui
 
 ---
 
-## License
-
-[Add your license here]
-
----
-
-## Contact
-
-For questions or bug reports, please open an issue on [GitHub](https://github.com/bhusallaxman22/moodfood/issues).
